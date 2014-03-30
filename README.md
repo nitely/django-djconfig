@@ -102,6 +102,14 @@ This will make cross-process caching possible. Not really, but it will reload th
 
 `Redis` is also a good choice, but there is no backend built-in in Django, so take a look at [django-redis-cache](https://github.com/sebleier/django-redis-cache)
 
+## Supported form fields
+
+The following form fields were tested: BooleanField, CharField, EmailField, FloatField, IntegerField, URLField.
+
+Fields that return complex objects are not supported. Basically any object that can be store in a data base is supported, except for DateField which is not supported at this time (sorry).
+
+*There is an easy way to solve this, by saving the raw user input, but that's probably not secure.*
+
 ## Contributing
 
 Feel free to check out the source code and submit pull requests.
