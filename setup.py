@@ -16,7 +16,7 @@ setup(
     author='Esteban Castro Borsani',
     author_email='ecastroborsani@gmail.com',
     long_description=README,
-    url='http://github.com/',
+    url='https://github.com/nitely/django-djconfig',
     packages=[
         'djconfig',
     ],
