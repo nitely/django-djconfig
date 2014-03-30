@@ -18,8 +18,9 @@ DjConfig requires the following software to be installed:
 ## Configuration
 
 1. Add `djconfig` to your *INSTALLED_APPS*
-2. ...
-3. Run `python manage.py syncdb`
+2. Run `python manage.py syncdb`
+3. (Optional) Add `djconfig.middleware.DjConfigLocMemMiddleware` to your *MIDDLEWARE_CLASSES* if you are using django `LocMemCache` and running multiple processes
+4. (Optional) Add `djconfig.context_processors.config` to your *TEMPLATE_CONTEXT_PROCESSORS* for accessing `config` within your templates
 
 ## Usage
 
@@ -55,6 +56,19 @@ from djconfig import config
 
 if config.my_first_key:
     ...
+```
+
+Accessing your config variables within your templates:
+*Requires setting `djconfig.context_processors.config` or passing the `config` object to your RequestContext manually*
+
+```
+*template.html*
+
+...
+
+{% if config.my_first_key %}
+    ...
+{% endif %}
 ```
 
 Dynamically setting your config variables:
@@ -104,7 +118,7 @@ This will make cross-process caching possible. Not really, but it will reload th
 
 ## Supported form fields
 
-The following form fields were tested: BooleanField, CharField, EmailField, FloatField, IntegerField, URLField.
+The following form fields were tested: `BooleanField`, `CharField`, `EmailField`, `FloatField`, `IntegerField`, `URLField`.
 
 Fields that return complex objects are not supported. Basically any object that can be store in a data base is supported, except for DateField which is not supported at this time (sorry).
 
