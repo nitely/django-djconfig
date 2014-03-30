@@ -108,7 +108,7 @@ CACHES = {
 
 To use other backend than the default, add `DJC_BACKEND = 'other'` in your *settings.py* file.
 
-Supported caches:
+Supported backends:
 * `LocMemCache`
 * `Memcached`
 * `Redis` (requires [django-redis-cache](https://github.com/sebleier/django-redis-cache))
