@@ -10,7 +10,7 @@ import djconfig
 from djconfig.forms import ConfigForm
 from djconfig.models import Config
 from djconfig.config import Config as ConfigCache
-from djconfig.middleware import DjConfigMiddleware
+from djconfig.middleware import DjConfigLocMemMiddleware
 
 
 class FooForm(ConfigForm):
@@ -193,6 +193,6 @@ class DjConfigMiddlewareTest(TestCase):
         cache = get_cache(djconfig.BACKEND)
         self.assertEqual(cache.get('char'), None)
 
-        middleware = DjConfigMiddleware()
+        middleware = DjConfigLocMemMiddleware()
         middleware.process_request(request=None)
         self.assertEqual(cache.get('char'), "foo")

@@ -2,10 +2,10 @@
 
 import djconfig
 
-__all__ = ['DjConfigMiddleware', ]
+__all__ = ['DjConfigLocMemMiddleware', ]
 
 
-class DjConfigMiddleware(object):
+class DjConfigLocMemMiddleware(object):
     """
     Populates the cache using the database
     required by the LocalMem backend

@@ -5,8 +5,8 @@ DjConfig is a Django app to store other apps configurations.
 ## How it works
 
 DjConfig let you provide all the configuration variables you need by using a regular form.
-Those variables are persisted in the database (one per row) and stored in the selected cache backend for later access.
 
+Those variables are persisted in the database (one per row) and stored in the selected cache backend for later access.
 
 ## Requirements
 
@@ -17,13 +17,9 @@ DjConfig requires the following software to be installed:
 
 ## Configuration
 
-Add `djconfig` to your *INSTALLED_APPS*
-
-Add `djconfig.middleware.DjConfigMiddleware` to your *MIDDLEWARE_CLASSES* if you are planning to use LocMemCache as the cache backend
-
-Run:
-
-    python manage.py syncdb
+1. Add `djconfig` to your *INSTALLED_APPS*
+2. ...
+3. Run `python manage.py syncdb`
 
 ## Usage
 
@@ -35,14 +31,14 @@ from djconfig.forms import ConfigForm
 
 class AppConfigForm(ConfigForm):
 
-    debug = forms.BooleanField(initial=True, required=False)
-    max_comments = forms.IntegerField(initial=20)
+    my_first_key = forms.BooleanField(initial=True, required=False)
+    my_second_key = forms.IntegerField(initial=20)
 ```
 
 Registering your form:
 
 ```
-_models.py_
+*models.py*
 
 import djconfig
 
@@ -57,14 +53,34 @@ Accessing your config variables:
 from djconfig import config
 
 
-
-if config.debug:
-    ...
-
-
-for i in range(config.max_comments):
+if config.my_first_key:
     ...
 ```
+
+## Backends
+
+DjConfig requires a Django cache backend to be installed.
+
+```
+*settings.py*
+
+...
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
+```
+
+To use other backend than the default, add `DJC_BACKEND = 'other'` in your *settings.py* file.
+
+When using `LocMemCache` you must add `djconfig.middleware.DjConfigLocMemMiddleware` to your *MIDDLEWARE_CLASSES*.
+This will make cross-process caching possible. Not really, but it will reload the cache on every request by quering the database.
+
+`Memcached` is the recommended backend.
+
+`Redis` is also a good choice, but there is no backend built-in in Django, so take a look at [django-redis-cache](https://github.com/sebleier/django-redis-cache)
 
 ## Contributing
 
