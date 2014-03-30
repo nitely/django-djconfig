@@ -76,6 +76,7 @@ CACHES = {
 To use other backend than the default, add `DJC_BACKEND = 'other'` in your *settings.py* file.
 
 When using `LocMemCache` you must add `djconfig.middleware.DjConfigLocMemMiddleware` to your *MIDDLEWARE_CLASSES*.
+
 This will make cross-process caching possible. Not really, but it will reload the cache on every request by quering the database.
 
 `Memcached` is the recommended backend.
