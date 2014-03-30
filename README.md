@@ -41,23 +41,30 @@ class AppConfigForm(ConfigForm):
 
 Registering your form:
 
-> _models.py_
->
->
-> import djconfig
->
-> ...
->
-> djconfig.register(AppConfigForm)
+```
+_models.py_
+
+import djconfig
+
+...
+
+djconfig.register(AppConfigForm)
+```
 
 Accessing your config variables:
 
-> from djconfig import config
->
->
-> ...
-> if config.debug:
->     ...
+```
+from djconfig import config
+
+
+
+if config.debug:
+    ...
+
+
+for i in range(config.max_comments):
+    ...
+```
 
 ## Contributing
 
