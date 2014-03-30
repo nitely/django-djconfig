@@ -29,17 +29,15 @@ Run:
 
 Setting your config variables:
 
-> from djconfig.forms import ConfigForm
->
->
->
->
-> class AppConfigForm(ConfigForm):
->
->
->    debug = forms.BooleanField(initial=True, required=False)
->
->    max_comments = forms.IntegerField(initial=20)
+```
+from djconfig.forms import ConfigForm
+
+
+class AppConfigForm(ConfigForm):
+
+    debug = forms.BooleanField(initial=True, required=False)
+    max_comments = forms.IntegerField(initial=20)
+```
 
 Registering your form:
 

@@ -34,7 +34,7 @@ class DjConfigTest(TestCase):
         register forms
         """
         djconfig.register(FooForm)
-        self.assertSequenceEqual(djconfig._registered_forms, {FooForm, })
+        self.assertSetEqual(djconfig._registered_forms, {FooForm, })
 
     def test_register_invalid_form(self):
         """
