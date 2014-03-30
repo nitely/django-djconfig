@@ -57,6 +57,25 @@ if config.my_first_key:
     ...
 ```
 
+Dynamically setting your config variables:
+
+```
+def config_view(request):
+    if not request.user.is_superuser:
+        raise Http404
+
+    if request.method == 'POST':
+        form = AppConfigForm(data=request.POST)
+
+        if form.is_valid():
+            form.save()
+            return redirect('/')
+    else:
+        form = AppConfigForm()
+
+    return render(request, 'app/configuration.html', {'form': form, })
+```
+
 ## Backends
 
 DjConfig requires a Django cache backend to be installed.
