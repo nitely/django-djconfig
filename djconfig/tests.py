@@ -187,6 +187,7 @@ class DjConfigMiddlewareTest(TestCase):
         """
         djconfig.register(BarForm)
         cache = get_cache(djconfig.BACKEND)
+        cache.set('char', None)
         self.assertEqual(cache.get('char'), None)
 
         middleware = DjConfigLocMemMiddleware()
