@@ -28,7 +28,7 @@ class DjConfigTest(TestCase):
 
     def setUp(self):
         _cache.clear()
-        djconfig._registered_forms = set()
+        djconfig._registered_forms.clear()
 
     def test_register(self):
         """
@@ -125,7 +125,7 @@ class DjConfigFormsTest(TestCase):
 
     def setUp(self):
         _cache.clear()
-        djconfig._registered_forms = set()
+        djconfig._registered_forms.clear()
 
     def test_config_form(self):
         """
@@ -167,7 +167,7 @@ class DjConfigConfTest(TestCase):
 
     def setUp(self):
         _cache.clear()
-        djconfig._registered_forms = set()
+        djconfig._registered_forms.clear()
 
     def test_config(self):
         """
@@ -183,7 +183,7 @@ class DjConfigMiddlewareTest(TestCase):
 
     def setUp(self):
         _cache.clear()
-        djconfig._registered_forms = set()
+        djconfig._registered_forms.clear()
 
     def test_config_middleware_process_request(self):
         """
