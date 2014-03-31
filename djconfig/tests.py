@@ -30,6 +30,8 @@ class DjConfigTest(TestCase):
         _cache.clear()
         djconfig._registered_forms.clear()
 
+        self.cache = get_cache(djconfig.BACKEND)
+
     def test_register(self):
         """
         register forms
@@ -51,9 +53,8 @@ class DjConfigTest(TestCase):
         Load initial configuration into the cache
         """
         djconfig.register(FooForm)
-        cache = get_cache(djconfig.BACKEND)
-        values = cache.get_many(['boolean', 'boolean_false', 'char', 'email',
-                                 'float_number', 'integer', 'url'])
+        values = self.cache.get_many(['boolean', 'boolean_false', 'char', 'email',
+                                      'float_number', 'integer', 'url'])
         self.assertDictEqual(values, {'boolean': True,
                                       'boolean_false': False,
                                       'char': "foo",
@@ -76,10 +77,9 @@ class DjConfigTest(TestCase):
         Config.objects.bulk_create(data)
 
         djconfig.register(FooForm)
-        cache = get_cache(djconfig.BACKEND)
 
-        values = cache.get_many(['boolean', 'boolean_false', 'float_number',
-                                 'char', 'email', 'integer', 'url'])
+        values = self.cache.get_many(['boolean', 'boolean_false', 'float_number',
+                                      'char', 'email', 'integer', 'url'])
         self.assertDictEqual(values, {'boolean': False,
                                       'boolean_false': True,
                                       'float_number': 2.1,
@@ -91,7 +91,7 @@ class DjConfigTest(TestCase):
         # use initial if the field is not found in the db
         Config.objects.get(key='char').delete()
         djconfig.load()
-        self.assertEqual(cache.get('char'), "foo")
+        self.assertEqual(self.cache.get('char'), "foo")
 
     def test_load_unicode(self):
         """
@@ -99,8 +99,7 @@ class DjConfigTest(TestCase):
         """
         Config.objects.create(key='char', value=u"áéíóú")
         djconfig.register(FooForm)
-        cache = get_cache(djconfig.BACKEND)
-        self.assertEqual(cache.get('char'), u"áéíóú")
+        self.assertEqual(self.cache.get('char'), u"áéíóú")
 
     def test_load_from_database_invalid(self):
         """
@@ -108,8 +107,7 @@ class DjConfigTest(TestCase):
         """
         Config.objects.create(key='integer', value="string")
         djconfig.register(FooForm)
-        cache = get_cache(djconfig.BACKEND)
-        self.assertEqual(cache.get('integer'), 123)
+        self.assertEqual(self.cache.get('integer'), 123)
 
 
 class BarForm(ConfigForm):
