@@ -19,7 +19,7 @@ DjConfig requires the following software to be installed:
 
 1. Add `djconfig` to your *INSTALLED_APPS*
 2. Run `python manage.py syncdb`
-3. [Set a memory-based cache](https://github.com/nitely/django-djconfig#backends)
+3. [Set a cache backend](https://github.com/nitely/django-djconfig#backends)
 4. (Optional) Add `djconfig.middleware.DjConfigLocMemMiddleware` to your *MIDDLEWARE_CLASSES* if you are using django `LocMemCache` and running multiple processes
 5. (Optional) Add `djconfig.context_processors.config` to your *TEMPLATE_CONTEXT_PROCESSORS* for accessing `config` within your templates
 
