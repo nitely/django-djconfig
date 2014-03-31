@@ -79,6 +79,7 @@ Dynamically setting your config variables:
 ```python
 # views.py
 
+@login_required
 def config_view(request):
     if not request.user.is_superuser:
         raise Http404
