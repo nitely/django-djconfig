@@ -126,6 +126,10 @@ Fields that return complex objects are not supported. Basically any object that 
 
 *There is an easy way to solve this, by saving the raw user input, but that's probably not secure.*
 
+## Limitations
+
+* Although you can register several forms, field names must be unique across forms.
+
 ## Contributing
 
 Feel free to check out the source code and submit pull requests.
