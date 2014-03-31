@@ -51,7 +51,6 @@ class DjConfigTest(TestCase):
         Load initial configuration into the cache
         """
         djconfig.register(FooForm)
-        djconfig.load()
         cache = get_cache(djconfig.BACKEND)
         values = cache.get_many(['boolean', 'boolean_false', 'char', 'email',
                                  'float_number', 'integer', 'url'])
@@ -77,7 +76,6 @@ class DjConfigTest(TestCase):
         Config.objects.bulk_create(data)
 
         djconfig.register(FooForm)
-        djconfig.load()
         cache = get_cache(djconfig.BACKEND)
 
         values = cache.get_many(['boolean', 'boolean_false', 'float_number',
@@ -101,7 +99,6 @@ class DjConfigTest(TestCase):
         """
         Config.objects.create(key='char', value=u"áéíóú")
         djconfig.register(FooForm)
-        djconfig.load()
         cache = get_cache(djconfig.BACKEND)
         self.assertEqual(cache.get('char'), u"áéíóú")
 
@@ -111,7 +108,6 @@ class DjConfigTest(TestCase):
         """
         Config.objects.create(key='integer', value="string")
         djconfig.register(FooForm)
-        djconfig.load()
         cache = get_cache(djconfig.BACKEND)
         self.assertEqual(cache.get('integer'), 123)
 

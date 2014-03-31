@@ -30,6 +30,7 @@ def register(form_class):
         "The form does not inherit from ConfigForm"
 
     _registered_forms.add(form_class)
+    _load()
 
 
 def load():
@@ -69,5 +70,3 @@ def _load():
         return
 
     load()
-
-_load()
