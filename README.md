@@ -19,14 +19,17 @@ DjConfig requires the following software to be installed:
 
 1. Add `djconfig` to your *INSTALLED_APPS*
 2. Run `python manage.py syncdb`
-3. (Optional) Add `djconfig.middleware.DjConfigLocMemMiddleware` to your *MIDDLEWARE_CLASSES* if you are using django `LocMemCache` and running multiple processes
-4. (Optional) Add `djconfig.context_processors.config` to your *TEMPLATE_CONTEXT_PROCESSORS* for accessing `config` within your templates
+3. [Set a memory-based cache](https://github.com/nitely/django-djconfig#backends)
+4. (Optional) Add `djconfig.middleware.DjConfigLocMemMiddleware` to your *MIDDLEWARE_CLASSES* if you are using django `LocMemCache` and running multiple processes
+5. (Optional) Add `djconfig.context_processors.config` to your *TEMPLATE_CONTEXT_PROCESSORS* for accessing `config` within your templates
 
 ## Usage
 
 Setting your config variables:
 
-```
+```python
+# forms.py
+
 from djconfig.forms import ConfigForm
 
 
@@ -38,42 +41,44 @@ class AppConfigForm(ConfigForm):
 
 Registering your form:
 
-```
-*models.py*
+```python
+# models.py
 
 import djconfig
 
-...
+# ...
 
 djconfig.register(AppConfigForm)
 ```
 
 Accessing your config variables:
 
-```
+```python
 from djconfig import config
 
 
 if config.my_first_key:
-    ...
+    # ...
 ```
 
 Accessing your config variables within your templates:
 *Requires setting `djconfig.context_processors.config` or passing the `config` object to your RequestContext manually*
 
-```
-*template.html*
+```python
+# template.html
 
-...
+# ...
 
 {% if config.my_first_key %}
-    ...
+    # ...
 {% endif %}
 ```
 
 Dynamically setting your config variables:
 
-```
+```python
+# views.py
+
 def config_view(request):
     if not request.user.is_superuser:
         raise Http404
@@ -94,10 +99,10 @@ def config_view(request):
 
 DjConfig requires a Django cache backend to be installed.
 
-```
-*settings.py*
+```python
+# settings.py
 
-...
+# ...
 
 CACHES = {
     'default': {
