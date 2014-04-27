@@ -7,6 +7,7 @@ from django.core.cache import get_cache
 from django.conf import settings
 
 import djconfig
+import djconfig.settings
 from djconfig.forms import ConfigForm
 from djconfig.models import Config
 from djconfig.config import Config as ConfigCache
@@ -206,7 +207,7 @@ class DjConfigMiddlewareTest(TestCase):
         """
         only LocMemCache should be allowed
         """
-        org_cache, org_djbackend = settings.CACHES, djconfig.BACKEND
+        org_cache, org_djbackend = settings.CACHES, djconfig.settings.BACKEND
         settings.CACHES = TEST_CACHES
 
         try:
@@ -217,4 +218,4 @@ class DjConfigMiddlewareTest(TestCase):
             djconfig.BACKEND = 'bad'
             self.assertRaises(ValueError, middleware.check_backend)
         finally:
-            settings.CACHES, djconfig.BACKEND = org_cache, org_djbackend
+            settings.CACHES, djconfig.settings.BACKEND = org_cache, org_djbackend
