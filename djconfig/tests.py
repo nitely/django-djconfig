@@ -173,6 +173,16 @@ class DjConfigConfTest(TestCase):
         self.assertEqual(config.key, "value")
 
 
+TEST_CACHES = {
+    'good': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    },
+    'bad': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}
+
+
 class DjConfigMiddlewareTest(TestCase):
 
     def setUp(self):
@@ -191,3 +201,20 @@ class DjConfigMiddlewareTest(TestCase):
         middleware = DjConfigLocMemMiddleware()
         middleware.process_request(request=None)
         self.assertEqual(cache.get('char'), "foo")
+
+    def test_config_middleware_check_backend(self):
+        """
+        only LocMemCache should be allowed
+        """
+        org_cache, org_djbackend = settings.CACHES, djconfig.BACKEND
+        settings.CACHES = TEST_CACHES
+
+        try:
+            djconfig.BACKEND = 'good'
+            middleware = DjConfigLocMemMiddleware()
+            self.assertIsNone(middleware.check_backend())
+
+            djconfig.BACKEND = 'bad'
+            self.assertRaises(ValueError, middleware.check_backend)
+        finally:
+            settings.CACHES, djconfig.BACKEND = org_cache, org_djbackend
