@@ -2,16 +2,14 @@
 
 from django.core.cache import get_cache
 from django.db import connection
-from django.conf import settings
 
 from djconfig.forms import ConfigForm
-from djconfig.settings import DJC_BACKEND
 from djconfig.config import Config
 from djconfig.models import Config as ConfigModel
+from djconfig.settings import BACKEND
 
 __all__ = ['config', 'register']
 
-BACKEND = getattr(settings, 'DJC_BACKEND', DJC_BACKEND)
 
 config = Config()
 _registered_forms = set()

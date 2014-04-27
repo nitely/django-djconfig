@@ -1,3 +1,6 @@
 #-*- coding: utf-8 -*-
 
-DJC_BACKEND = 'default'
+from django.conf import settings
+
+
+BACKEND = getattr(settings, 'DJC_BACKEND', 'default')
