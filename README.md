@@ -40,15 +40,17 @@ class AppConfigForm(ConfigForm):
 ```
 
 Registering your form:
+>**Note**: On django<=1.6 there is no good place to put startup code,
+I've tried urls.py and manager.py and both of them seems to work fine.
 
 ```python
-# models.py
+# urls.py
 
 import djconfig
 
-# ...
-
 djconfig.register(AppConfigForm)
+
+# ...
 ```
 
 Accessing your config variables:

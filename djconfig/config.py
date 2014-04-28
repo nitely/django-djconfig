@@ -1,11 +1,8 @@
 #-*- coding: utf-8 -*-
 
 from django.core.cache import get_cache
-from django.conf import settings
 
-from djconfig.settings import DJC_BACKEND
-
-BACKEND = getattr(settings, 'DJC_BACKEND', DJC_BACKEND)
+from djconfig.settings import BACKEND
 
 
 class Config(object):

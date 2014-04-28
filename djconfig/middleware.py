@@ -1,6 +1,9 @@
 #-*- coding: utf-8 -*-
 
+from django.conf import settings
+
 import djconfig
+from djconfig.settings import BACKEND
 
 __all__ = ['DjConfigLocMemMiddleware', ]
 
@@ -11,4 +14,11 @@ class DjConfigLocMemMiddleware(object):
     required by the LocalMem backend
     """
     def process_request(self, request):
+        self.check_backend()
         djconfig.load()
+
+    def check_backend(self):
+        backend = settings.CACHES[BACKEND]
+
+        if not backend['BACKEND'].endswith(".LocMemCache"):
+            raise ValueError("DjConfigLocMemMiddleware requires LocMemCache as cache")
