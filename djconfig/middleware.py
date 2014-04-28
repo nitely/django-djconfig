@@ -3,7 +3,6 @@
 from django.conf import settings
 
 import djconfig
-from djconfig.settings import BACKEND
 
 __all__ = ['DjConfigLocMemMiddleware', ]
 
@@ -18,7 +17,7 @@ class DjConfigLocMemMiddleware(object):
         djconfig.load()
 
     def check_backend(self):
-        backend = settings.CACHES[BACKEND]
+        backend = settings.CACHES[djconfig.BACKEND]
 
         if not backend['BACKEND'].endswith(".LocMemCache"):
             raise ValueError("DjConfigLocMemMiddleware requires LocMemCache as cache")
