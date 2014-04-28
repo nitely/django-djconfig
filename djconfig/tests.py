@@ -7,15 +7,11 @@ from django.core.cache import get_cache
 from django.conf import settings
 
 import djconfig
+from djconfig import prefixer
 from djconfig.forms import ConfigForm
 from djconfig.models import Config as ConfigModel
 from djconfig.config import Config as ConfigCache
 from djconfig.middleware import DjConfigLocMemMiddleware
-import djconfig.middleware
-
-
-def prefixer(key):
-    return u"%s:%s" % (djconfig.PREFIX, key)
 
 
 class FooForm(ConfigForm):
@@ -207,10 +203,10 @@ class DjConfigMiddlewareTest(TestCase):
         try:
             settings.CACHES = TEST_CACHES
             djconfig.BACKEND = 'good'
+            cache = get_cache('good')
 
             middleware = DjConfigLocMemMiddleware()
             middleware.process_request(request=None)
-            cache = get_cache('good')
             self.assertEqual(cache.get(prefixer('char')), "foo")
         finally:
             settings.CACHES, djconfig.BACKEND = org_cache, org_djbackend

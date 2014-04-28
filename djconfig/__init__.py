@@ -31,6 +31,10 @@ def register(form_class):
     load()
 
 
+def prefixer(key):
+    return u"%s:%s" % (PREFIX, key)
+
+
 def load():
     """
     Loads every registered form into the cache.
@@ -46,11 +50,11 @@ def load():
         form = form_class(data=data)
         form.full_clean()
 
-        initial = {u"%s:%s" % (PREFIX, field_name): field.initial
+        initial = {prefixer(field_name): field.initial
                    for field_name, field in form.fields.iteritems()}
         cache_values.update(initial)
 
-        cleaned_data = {u"%s:%s" % (PREFIX, field_name): value
+        cleaned_data = {prefixer(field_name): value
                         for field_name, value in form.cleaned_data.iteritems()
                         if field_name in data}
         cache_values.update(cleaned_data)
