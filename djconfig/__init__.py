@@ -7,7 +7,7 @@ from djconfig.config import Config
 from djconfig.models import Config as ConfigModel
 from djconfig.settings import BACKEND, PREFIX
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 __all__ = ['config', 'register']
 
 
