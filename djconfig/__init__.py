@@ -1,5 +1,8 @@
 #-*- coding: utf-8 -*-
 
+__version__ = "0.1.2"
+__all__ = ['config', 'register']
+
 from django.core.cache import get_cache
 from django.db import connection
 
@@ -7,8 +10,6 @@ from djconfig.forms import ConfigForm
 from djconfig.config import Config
 from djconfig.models import Config as ConfigModel
 from djconfig.settings import BACKEND
-
-__all__ = ['config', 'register']
 
 
 config = Config()
