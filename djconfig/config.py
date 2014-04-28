@@ -2,7 +2,7 @@
 
 from django.core.cache import get_cache
 
-from djconfig.settings import BACKEND
+from djconfig.settings import BACKEND, PREFIX
 
 
 class Config(object):
@@ -11,4 +11,5 @@ class Config(object):
         self._cache = get_cache(BACKEND)
 
     def __getattr__(self, key):
+        key = u"%s:%s" % (PREFIX, key)
         return self._cache.get(key)

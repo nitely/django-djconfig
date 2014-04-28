@@ -14,6 +14,10 @@ from djconfig.middleware import DjConfigLocMemMiddleware
 import djconfig.middleware
 
 
+def prefixer(key):
+    return u"%s:%s" % (djconfig.PREFIX, key)
+
+
 class FooForm(ConfigForm):
 
     boolean = forms.BooleanField(initial=True, required=False)
@@ -54,15 +58,15 @@ class DjConfigTest(TestCase):
         Load initial configuration into the cache
         """
         djconfig.register(FooForm)
-        values = self.cache.get_many(['boolean', 'boolean_false', 'char', 'email',
-                                      'float_number', 'integer', 'url'])
-        self.assertDictEqual(values, {'boolean': True,
-                                      'boolean_false': False,
-                                      'char': "foo",
-                                      'email': "foo@bar.com",
-                                      'float_number': 1.23,
-                                      'integer': 123,
-                                      'url': "foo.com"})
+        keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number', 'integer', 'url']
+        values = self.cache.get_many([prefixer(k) for k in keys])
+        self.assertDictEqual(values, {prefixer('boolean'): True,
+                                      prefixer('boolean_false'): False,
+                                      prefixer('char'): "foo",
+                                      prefixer('email'): "foo@bar.com",
+                                      prefixer('float_number'): 1.23,
+                                      prefixer('integer'): 123,
+                                      prefixer('url'): "foo.com"})
 
     def test_load_from_database(self):
         """
@@ -79,20 +83,20 @@ class DjConfigTest(TestCase):
 
         djconfig.register(FooForm)
 
-        values = self.cache.get_many(['boolean', 'boolean_false', 'float_number',
-                                      'char', 'email', 'integer', 'url'])
-        self.assertDictEqual(values, {'boolean': False,
-                                      'boolean_false': True,
-                                      'float_number': 2.1,
-                                      'char': "foo2",
-                                      'email': "foo2@bar.com",
-                                      'integer': 321,
-                                      'url': "http://foo2.com/"})
+        keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number', 'integer', 'url']
+        values = self.cache.get_many([prefixer(k) for k in keys])
+        self.assertDictEqual(values, {prefixer('boolean'): False,
+                                      prefixer('boolean_false'): True,
+                                      prefixer('float_number'): 2.1,
+                                      prefixer('char'): "foo2",
+                                      prefixer('email'): "foo2@bar.com",
+                                      prefixer('integer'): 321,
+                                      prefixer('url'): "http://foo2.com/"})
 
         # use initial if the field is not found in the db
         ConfigModel.objects.get(key='char').delete()
         djconfig.load()
-        self.assertEqual(self.cache.get('char'), "foo")
+        self.assertEqual(self.cache.get(prefixer('char')), "foo")
 
     def test_load_unicode(self):
         """
@@ -100,7 +104,7 @@ class DjConfigTest(TestCase):
         """
         ConfigModel.objects.create(key='char', value=u"áéíóú")
         djconfig.register(FooForm)
-        self.assertEqual(self.cache.get('char'), u"áéíóú")
+        self.assertEqual(self.cache.get(prefixer('char')), u"áéíóú")
 
     def test_load_from_database_invalid(self):
         """
@@ -108,7 +112,7 @@ class DjConfigTest(TestCase):
         """
         ConfigModel.objects.create(key='integer', value="string")
         djconfig.register(FooForm)
-        self.assertEqual(self.cache.get('integer'), 123)
+        self.assertEqual(self.cache.get(prefixer('integer')), 123)
 
 
 class BarForm(ConfigForm):
@@ -155,7 +159,7 @@ class DjConfigFormsTest(TestCase):
         form.save()
 
         cache = get_cache(djconfig.BACKEND)
-        self.assertEqual(cache.get("char"), "foo2")
+        self.assertEqual(cache.get(prefixer('char')), "foo2")
 
 
 class DjConfigConfTest(TestCase):
@@ -169,7 +173,7 @@ class DjConfigConfTest(TestCase):
         config wrapper
         """
         cache = get_cache(djconfig.BACKEND)
-        cache.set("key", "value")
+        cache.set(prefixer("key"), "value")
         config = ConfigCache()
         self.assertEqual(config.key, "value")
 
@@ -196,26 +200,34 @@ class DjConfigMiddlewareTest(TestCase):
         """
         djconfig.register(BarForm)
         cache = get_cache(djconfig.BACKEND)
-        cache.set('char', None)
-        self.assertEqual(cache.get('char'), None)
+        cache.set(prefixer('char'), None)
+        self.assertEqual(cache.get(prefixer('char')), None)
 
-        middleware = DjConfigLocMemMiddleware()
-        middleware.process_request(request=None)
-        self.assertEqual(cache.get('char'), "foo")
+        org_cache, org_djbackend = settings.CACHES,  djconfig.BACKEND
+        try:
+            settings.CACHES = TEST_CACHES
+            djconfig.BACKEND = 'good'
+
+            middleware = DjConfigLocMemMiddleware()
+            middleware.process_request(request=None)
+            cache = get_cache('good')
+            self.assertEqual(cache.get(prefixer('char')), "foo")
+        finally:
+            settings.CACHES, djconfig.BACKEND = org_cache, org_djbackend
 
     def test_config_middleware_check_backend(self):
         """
         only LocMemCache should be allowed
         """
-        org_cache, org_djbackend = settings.CACHES, djconfig.middleware.BACKEND
-        settings.CACHES = TEST_CACHES
-
+        org_cache, org_djbackend = settings.CACHES, djconfig.BACKEND
         try:
-            djconfig.middleware.BACKEND = 'good'
+            settings.CACHES = TEST_CACHES
+
+            djconfig.BACKEND = 'good'
             middleware = DjConfigLocMemMiddleware()
             self.assertIsNone(middleware.check_backend())
 
-            djconfig.middleware.BACKEND = 'bad'
+            djconfig.BACKEND = 'bad'
             self.assertRaises(ValueError, middleware.check_backend)
         finally:
-            settings.CACHES, djconfig.middleware.BACKEND = org_cache, org_djbackend
+            settings.CACHES, djconfig.BACKEND = org_cache, org_djbackend
