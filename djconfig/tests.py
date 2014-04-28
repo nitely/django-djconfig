@@ -7,9 +7,9 @@ from django.core.cache import get_cache
 from django.conf import settings
 
 import djconfig
-import djconfig.settings
+from djconfig import settings as djc_settings
 from djconfig.forms import ConfigForm
-from djconfig.models import Config
+from djconfig.models import Config as ConfigModel
 from djconfig.config import Config as ConfigCache
 from djconfig.middleware import DjConfigLocMemMiddleware
 
@@ -68,14 +68,14 @@ class DjConfigTest(TestCase):
         """
         Load configuration into the cache
         """
-        data = [Config(key='boolean', value=False),
-                Config(key='boolean_false', value=True),
-                Config(key='float_number', value=2.1),
-                Config(key='char', value="foo2"),
-                Config(key='email', value="foo2@bar.com"),
-                Config(key='integer', value=321),
-                Config(key='url', value="foo2.com")]
-        Config.objects.bulk_create(data)
+        data = [ConfigModel(key='boolean', value=False),
+                ConfigModel(key='boolean_false', value=True),
+                ConfigModel(key='float_number', value=2.1),
+                ConfigModel(key='char', value="foo2"),
+                ConfigModel(key='email', value="foo2@bar.com"),
+                ConfigModel(key='integer', value=321),
+                ConfigModel(key='url', value="foo2.com")]
+        ConfigModel.objects.bulk_create(data)
 
         djconfig.register(FooForm)
 
@@ -90,7 +90,7 @@ class DjConfigTest(TestCase):
                                       'url': "http://foo2.com/"})
 
         # use initial if the field is not found in the db
-        Config.objects.get(key='char').delete()
+        ConfigModel.objects.get(key='char').delete()
         djconfig.load()
         self.assertEqual(self.cache.get('char'), "foo")
 
@@ -98,7 +98,7 @@ class DjConfigTest(TestCase):
         """
         Load configuration into the cache
         """
-        Config.objects.create(key='char', value=u"áéíóú")
+        ConfigModel.objects.create(key='char', value=u"áéíóú")
         djconfig.register(FooForm)
         self.assertEqual(self.cache.get('char'), u"áéíóú")
 
@@ -106,7 +106,7 @@ class DjConfigTest(TestCase):
         """
         Load initial if the db value is invalid
         """
-        Config.objects.create(key='integer', value="string")
+        ConfigModel.objects.create(key='integer', value="string")
         djconfig.register(FooForm)
         self.assertEqual(self.cache.get('integer'), 123)
 
@@ -129,19 +129,19 @@ class DjConfigFormsTest(TestCase):
         form = BarForm(data={"char": "foo2", })
         self.assertTrue(form.is_valid())
         form.save()
-        config = Config.objects.get(key="char")
+        config = ConfigModel.objects.get(key="char")
         self.assertEqual(config.value, "foo2")
 
     def test_config_form_update(self):
         """
         config form
         """
-        Config.objects.create(key="char", value="bar")
+        ConfigModel.objects.create(key="char", value="bar")
 
         form = BarForm(data={"char": "foo2", })
         self.assertTrue(form.is_valid())
         form.save()
-        config = Config.objects.get(key="char")
+        config = ConfigModel.objects.get(key="char")
         self.assertEqual(config.value, "foo2")
 
     def test_config_form_cache_update(self):
@@ -207,15 +207,15 @@ class DjConfigMiddlewareTest(TestCase):
         """
         only LocMemCache should be allowed
         """
-        org_cache, org_djbackend = settings.CACHES, djconfig.settings.BACKEND
+        org_cache, org_djbackend = settings.CACHES, djc_settings.BACKEND
         settings.CACHES = TEST_CACHES
 
         try:
-            djconfig.settings.BACKEND = 'good'
+            djc_settings.BACKEND = 'good'
             middleware = DjConfigLocMemMiddleware()
             self.assertIsNone(middleware.check_backend())
 
-            djconfig.settings.BACKEND = 'bad'
+            djc_settings.BACKEND = 'bad'
             self.assertRaises(ValueError, middleware.check_backend)
         finally:
-            settings.CACHES, djconfig.settings.BACKEND = org_cache, org_djbackend
+            settings.CACHES, djc_settings.BACKEND = org_cache, org_djbackend
