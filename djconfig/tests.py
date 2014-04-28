@@ -211,11 +211,11 @@ class DjConfigMiddlewareTest(TestCase):
         settings.CACHES = TEST_CACHES
 
         try:
-            djconfig.BACKEND = 'good'
+            djconfig.settings.BACKEND = 'good'
             middleware = DjConfigLocMemMiddleware()
             self.assertIsNone(middleware.check_backend())
 
-            djconfig.BACKEND = 'bad'
+            djconfig.settings.BACKEND = 'bad'
             self.assertRaises(ValueError, middleware.check_backend)
         finally:
             settings.CACHES, djconfig.settings.BACKEND = org_cache, org_djbackend
