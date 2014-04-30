@@ -1,13 +1,14 @@
 #-*- coding: utf-8 -*-
 
 from django.core.cache import get_cache
+from django.db import connection
 
 from djconfig.forms import ConfigForm
 from djconfig.config import Config
 from djconfig.models import Config as ConfigModel
 from djconfig.settings import BACKEND, PREFIX
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 __all__ = ['config', 'register']
 
 
@@ -28,7 +29,7 @@ def register(form_class):
         "The form does not inherit from ConfigForm"
 
     _registered_forms.add(form_class)
-    load()
+    _load()
 
 
 def prefixer(key):
@@ -61,3 +62,14 @@ def load():
 
     cache = get_cache(BACKEND)
     cache.set_many(cache_values)
+
+
+def _load():
+    """
+    Avoids loading if the Config table does not exists.
+    ie: when running syncdb for the first time.
+    """
+    if not ConfigModel._meta.db_table in connection.introspection.table_names():
+        return
+
+    load()
