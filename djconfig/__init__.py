@@ -4,15 +4,13 @@ from django.core.cache import get_cache
 from django.db import connection
 
 from djconfig.forms import ConfigForm
-from djconfig.config import Config
+from djconfig.config import config, prefixer
 from djconfig.models import Config as ConfigModel
 from djconfig.settings import BACKEND, PREFIX
 
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 __all__ = ['config', 'register']
 
-
-config = Config()
 _registered_forms = set()
 
 
@@ -30,10 +28,6 @@ def register(form_class):
 
     _registered_forms.add(form_class)
     _load()
-
-
-def prefixer(key):
-    return u"%s:%s" % (PREFIX, key)
 
 
 def load():
@@ -60,6 +54,7 @@ def load():
                         if field_name in data}
         cache_values.update(cleaned_data)
 
+    cache_values[prefixer('_updated_at')] = data.get('_updated_at')
     cache = get_cache(BACKEND)
     cache.set_many(cache_values)
 
