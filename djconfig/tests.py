@@ -1,5 +1,7 @@
 #-*- coding: utf-8 -*-
 
+import datetime
+
 from django.test import TestCase
 from django.core.cache import cache as _cache
 from django import forms
@@ -12,6 +14,7 @@ from djconfig.forms import ConfigForm
 from djconfig.models import Config as ConfigModel
 from djconfig.config import Config as ConfigCache
 from djconfig.middleware import DjConfigLocMemMiddleware
+from djconfig import forms as djconfig_forms
 
 
 class FooForm(ConfigForm):
@@ -110,6 +113,19 @@ class DjConfigTest(TestCase):
         djconfig.register(FooForm)
         self.assertEqual(self.cache.get(prefixer('integer')), 123)
 
+    def test_load_updated_at(self):
+        """
+        Load updated_at
+        """
+        djconfig.register(FooForm)
+        value = self.cache.get(prefixer("_updated_at"))
+        self.assertIsNone(value)
+
+        ConfigModel.objects.create(key="_updated_at", value="string")
+        djconfig.load()
+        value = self.cache.get(prefixer("_updated_at"))
+        self.assertEqual(value, "string")
+
 
 class BarForm(ConfigForm):
 
@@ -157,6 +173,35 @@ class DjConfigFormsTest(TestCase):
         cache = get_cache(djconfig.BACKEND)
         self.assertEqual(cache.get(prefixer('char')), "foo2")
 
+    def test_config_form_updated_at(self):
+        """
+        updated_at should get update on every save() call
+        """
+        now = djconfig_forms.timezone.now()
+
+        class TZMock:
+            @classmethod
+            def now(self):
+                return now
+
+        orig_djconfig_forms_timezone, djconfig_forms.timezone = djconfig_forms.timezone, TZMock
+        try:
+            form = BarForm(data={"char": "foo2", })
+            self.assertTrue(form.is_valid())
+            form.save()
+            updated_at_a = ConfigModel.objects.get(key="_updated_at").value
+
+            now += datetime.timedelta(seconds=1)
+
+            form = BarForm(data={"char": "foo2", })
+            self.assertTrue(form.is_valid())
+            form.save()
+            updated_at_b = ConfigModel.objects.get(key="_updated_at").value
+
+            self.assertNotEqual(updated_at_a, updated_at_b)
+        finally:
+            djconfig_forms.timezone = orig_djconfig_forms_timezone
+
 
 class DjConfigConfTest(TestCase):
 
@@ -194,22 +239,35 @@ class DjConfigMiddlewareTest(TestCase):
         """
         config middleware, reload cache
         """
+        ConfigModel.objects.create(key="char", value="foo")
         djconfig.register(BarForm)
         cache = get_cache(djconfig.BACKEND)
+
         cache.set(prefixer('char'), None)
-        self.assertEqual(cache.get(prefixer('char')), None)
+        self.assertIsNone(cache.get(prefixer('char')))
 
-        org_cache, org_djbackend = settings.CACHES,  djconfig.BACKEND
-        try:
-            settings.CACHES = TEST_CACHES
-            djconfig.BACKEND = 'good'
-            cache = get_cache('good')
+        # Should not reload since _updated_at does not exists (form was not saved)
+        middleware = DjConfigLocMemMiddleware()
+        middleware.process_request(request=None)
+        self.assertIsNone(cache.get(prefixer('char')))
 
-            middleware = DjConfigLocMemMiddleware()
-            middleware.process_request(request=None)
-            self.assertEqual(cache.get(prefixer('char')), "foo")
-        finally:
-            settings.CACHES, djconfig.BACKEND = org_cache, org_djbackend
+        # Changing _updated_at should make it reload
+        ConfigModel.objects.create(key="_updated_at", value="111")
+        middleware.process_request(request=None)
+        self.assertEqual(cache.get(prefixer('char')), "foo")
+        self.assertEqual(cache.get(prefixer("_updated_at")), "111")
+
+        # It does not update again, since _updated_at has not changed
+        ConfigModel.objects.filter(key="char").update(value="bar")
+        middleware.process_request(request=None)
+        self.assertNotEqual(cache.get(prefixer('char')), "bar")
+        self.assertEqual(cache.get(prefixer("_updated_at")), "111")
+
+        # Changing _updated_at should make it reload
+        ConfigModel.objects.filter(key="_updated_at").update(value="222")
+        middleware.process_request(request=None)
+        self.assertEqual(cache.get(prefixer('char')), "bar")
+        self.assertEqual(cache.get(prefixer("_updated_at")), "222")
 
     def test_config_middleware_check_backend(self):
         """
