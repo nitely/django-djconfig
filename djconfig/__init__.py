@@ -2,13 +2,14 @@
 
 from django.core.cache import get_cache
 from django.db import connection
+from django.conf import settings as django_settings
 
 from djconfig.forms import ConfigForm
 from djconfig.config import config, prefixer
 from djconfig.models import Config as ConfigModel
 from djconfig.settings import BACKEND, PREFIX
 
-__version__ = "0.1.5"
+__version__ = "0.1.6"
 __all__ = ['config', 'register']
 
 _registered_forms = set()
@@ -27,6 +28,7 @@ def register(form_class):
         "The form does not inherit from ConfigForm"
 
     _registered_forms.add(form_class)
+    _check_backend()
     _load()
 
 
@@ -43,7 +45,7 @@ def load():
 
     for form_class in _registered_forms:
         form = form_class(data=data)
-        form.full_clean()
+        form.is_valid()
 
         initial = {prefixer(field_name): field.initial
                    for field_name, field in form.fields.iteritems()}
@@ -68,3 +70,10 @@ def _load():
         return
 
     load()
+
+
+def _check_backend():
+    if django_settings.CACHES[BACKEND]['BACKEND'].endswith(".LocMemCache") and \
+            "djconfig.middleware.DjConfigLocMemMiddleware" not in django_settings.MIDDLEWARE_CLASSES:
+        raise ValueError("LocMemCache requires DjConfigLocMemMiddleware "
+                         "but it was not found in MIDDLEWARE_CLASSES")
