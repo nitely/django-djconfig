@@ -12,7 +12,7 @@ Those variables are persisted in the database (one per row) and stored in the se
 
 DjConfig requires the following software to be installed:
 
-* Python 2.7
+* Python 2.7, 3.3, 3.4
 * Django 1.5, 1.6, 1.7
 
 ## Configuration

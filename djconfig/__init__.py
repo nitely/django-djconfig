@@ -3,6 +3,7 @@
 from django.core.cache import get_cache
 from django.db import connection
 from django.conf import settings as django_settings
+from django.utils import six
 
 from djconfig.forms import ConfigForm
 from djconfig.config import config, prefixer
@@ -48,11 +49,11 @@ def load():
         form.is_valid()
 
         initial = {prefixer(field_name): field.initial
-                   for field_name, field in form.fields.iteritems()}
+                   for field_name, field in six.iteritems(form.fields)}
         cache_values.update(initial)
 
         cleaned_data = {prefixer(field_name): value
-                        for field_name, value in form.cleaned_data.iteritems()
+                        for field_name, value in six.iteritems(form.cleaned_data)
                         if field_name in data}
         cache_values.update(cleaned_data)
 
