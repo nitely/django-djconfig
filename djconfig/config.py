@@ -1,12 +1,14 @@
 #-*- coding: utf-8 -*-
 
+from __future__ import unicode_literals
+
 from django.core.cache import get_cache
 
 from djconfig.settings import BACKEND, PREFIX
 
 
 def prefixer(key):
-    return u"%s:%s" % (PREFIX, key)
+    return "%s:%s" % (PREFIX, key)
 
 
 class Config(object):
