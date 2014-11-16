@@ -2,7 +2,6 @@
 
 from django import forms
 from django.utils import timezone
-from django.utils import six
 
 import djconfig
 from djconfig.models import Config
@@ -25,7 +24,7 @@ class ConfigForm(forms.Form):
         data = self.cleaned_data
         data['_updated_at'] = timezone.now()
 
-        for field_name, value in six.iteritems(data):
+        for field_name, value in data.items():
             count = Config.objects.filter(key=field_name).update(value=value)
 
             if not count:
