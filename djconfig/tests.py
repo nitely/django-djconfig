@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 import datetime
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.core.cache import cache as _cache
 from django import forms
 from django.core.cache import get_cache
@@ -224,6 +224,9 @@ TEST_CACHES = {
     'good': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     },
+    'also_good': {
+        'BACKEND': 'djconfig.backends.TestingCache',
+    },
     'bad': {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
     }
@@ -282,7 +285,41 @@ class DjConfigMiddlewareTest(TestCase):
             middleware = DjConfigLocMemMiddleware()
             self.assertIsNone(middleware.check_backend())
 
+            djconfig.BACKEND = 'also_good'
+            middleware = DjConfigLocMemMiddleware()
+            self.assertIsNone(middleware.check_backend())
+
             djconfig.BACKEND = 'bad'
             self.assertRaises(ValueError, middleware.check_backend)
         finally:
             settings.CACHES, djconfig.BACKEND = org_cache, org_djbackend
+
+
+TESTING_BACKEND_CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    },
+    'djconfig': {
+        'BACKEND': 'djconfig.backends.TestingCache',
+        'LOCATION': 'test-djconfig',
+    }
+}
+
+
+class DjConfigBackendTest(TestCase):
+
+    def setUp(self):
+        _cache.clear()
+
+    @override_settings(CACHES=TESTING_BACKEND_CACHES)
+    def test_config_testing_backend(self):
+        """
+        TestingCache can't be cleared (it is persistent)
+        """
+        cache = get_cache('djconfig')
+
+        cache.set('foo', "foovalue")
+        self.assertIsNotNone(cache.get('foo'))
+
+        _cache.clear()
+        self.assertIsNotNone(cache.get('foo'))

@@ -132,7 +132,25 @@ The following form fields were tested: `BooleanField`, `CharField`, `EmailField`
 
 Fields that return complex objects are not supported. Basically any object that can be store in a data base is supported, except for DateField which is not supported at this time (sorry).
 
-*There is an easy way to solve this, by saving the raw user input, but that's probably not secure.*
+## Testing helpers
+
+DjConfig comes with a helpful cache called `TestingCache`.
+This cache is similar to LocMemCache, except it can't be cleared. So you can call `cache.clear()` to clear all your caches but the DjConfig one.
+
+Usage:
+```python
+CACHES = {
+    'default': {
+        # ...
+    },
+    'djconfig': {
+        'BACKEND': 'djconfig.backends.TestingCache',
+        'LOCATION': 'test-djconfig',
+    },
+}
+```
+
+> **Note:** `LOCATION` is required, otherwise it won't work.
 
 ## Limitations
 
