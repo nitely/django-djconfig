@@ -16,6 +16,7 @@ from djconfig.models import Config as ConfigModel
 from djconfig.config import Config as ConfigCache
 from djconfig.middleware import DjConfigLocMemMiddleware
 from djconfig import forms as djconfig_forms
+from djconfig.utils import override_djconfig
 
 
 class FooForm(ConfigForm):
@@ -321,3 +322,42 @@ class DjConfigBackendTest(TestCase):
         _cache.clear()
         self.assertIsNotNone(cache.get('foo'))
         self.assertIsNone(default_cache.get('foo'))
+
+
+class DjConfigUtilsTest(TestCase):
+
+    def setUp(self):
+        _cache.clear()
+        djconfig._registered_forms.clear()
+
+    def test_override_djconfig(self):
+        """
+        Sets config variables temporarily
+        """
+        @override_djconfig(foo='bar', foo2='bar2')
+        def my_test(my_var):
+            return my_var, djconfig.config.foo, djconfig.config.foo2
+
+        djconfig.config._set('foo', 'org')
+        djconfig.config._set('foo2', 'org2')
+
+        res = my_test("stuff")
+        self.assertEqual(res, ("stuff", 'bar', 'bar2'))
+        self.assertEqual((djconfig.config.foo, djconfig.config.foo2), ("org", 'org2'))
+
+    def test_override_djconfig_except(self):
+        """
+        Sets config variables temporarily, even on exceptions
+        """
+        @override_djconfig(foo='bar')
+        def my_test():
+            raise AssertionError
+
+        djconfig.config._set('foo', 'org')
+
+        try:
+            my_test()
+        except AssertionError:
+            pass
+
+        self.assertEqual(djconfig.config.foo, "org")

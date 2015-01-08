@@ -149,6 +149,20 @@ CACHES = {
 }
 ```
 
+## Testing helpers
+
+DjConfig comes with a helper similar to django's `@override_settings` you can use in tests.
+
+Usage:
+```python
+from djconfig.utils import override_djconfig
+
+@override_djconfig(my_first_key="foo", my_second_key="bar")
+def test_something(self):
+    # ...
+```
+
+
 ## Limitations
 
 * Although you can register several forms, field names must be unique across forms.

@@ -19,5 +19,8 @@ class Config(object):
     def __getattr__(self, key):
         return self._cache.get(prefixer(key))
 
+    def _set(self, key, value):
+        self._cache.set(prefixer(key), value)
+
 
 config = Config()
