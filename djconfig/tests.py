@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import datetime
 
 from django.test import TestCase
+from django.test.utils import override_settings
 from django.core.cache import cache as _cache
 from django import forms
 from django.core.cache import get_cache
@@ -16,6 +17,7 @@ from djconfig.models import Config as ConfigModel
 from djconfig.config import Config as ConfigCache
 from djconfig.middleware import DjConfigLocMemMiddleware
 from djconfig import forms as djconfig_forms
+from djconfig.utils import override_djconfig
 
 
 class FooForm(ConfigForm):
@@ -286,3 +288,77 @@ class DjConfigMiddlewareTest(TestCase):
             self.assertRaises(ValueError, middleware.check_backend)
         finally:
             settings.CACHES, djconfig.BACKEND = org_cache, org_djbackend
+
+
+TESTING_BACKEND_CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    },
+    'djconfig': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'test-djconfig',
+    }
+}
+
+
+class DjConfigBackendTest(TestCase):
+
+    def setUp(self):
+        _cache.clear()
+
+    @override_settings(CACHES=TESTING_BACKEND_CACHES)
+    def test_config_testing_backend(self):
+        """
+        TestingCache can't be cleared (it is persistent)
+        """
+        cache = get_cache('djconfig')
+        default_cache = get_cache('default')
+
+        cache.set('foo', "foovalue")
+        self.assertIsNotNone(cache.get('foo'))
+
+        default_cache.set('bar', "barvalue")
+        self.assertIsNotNone(default_cache.get('bar'))
+
+        _cache.clear()
+        self.assertIsNotNone(cache.get('foo'))
+        self.assertIsNone(default_cache.get('foo'))
+
+
+class DjConfigUtilsTest(TestCase):
+
+    def setUp(self):
+        _cache.clear()
+        djconfig._registered_forms.clear()
+
+    def test_override_djconfig(self):
+        """
+        Sets config variables temporarily
+        """
+        @override_djconfig(foo='bar', foo2='bar2')
+        def my_test(my_var):
+            return my_var, djconfig.config.foo, djconfig.config.foo2
+
+        djconfig.config._set('foo', 'org')
+        djconfig.config._set('foo2', 'org2')
+
+        res = my_test("stuff")
+        self.assertEqual(res, ("stuff", 'bar', 'bar2'))
+        self.assertEqual((djconfig.config.foo, djconfig.config.foo2), ("org", 'org2'))
+
+    def test_override_djconfig_except(self):
+        """
+        Sets config variables temporarily, even on exceptions
+        """
+        @override_djconfig(foo='bar')
+        def my_test():
+            raise AssertionError
+
+        djconfig.config._set('foo', 'org')
+
+        try:
+            my_test()
+        except AssertionError:
+            pass
+
+        self.assertEqual(djconfig.config.foo, "org")

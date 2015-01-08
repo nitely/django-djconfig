@@ -22,7 +22,7 @@ class DjConfigLocMemMiddleware(object):
     def check_backend(self):
         backend = settings.CACHES[djconfig.BACKEND]
 
-        if not backend['BACKEND'].endswith(".LocMemCache"):
+        if not backend['BACKEND'].endswith((".LocMemCache", ".TestingCache")):
             raise ValueError("DjConfigLocMemMiddleware requires LocMemCache as cache")
 
     def reload(self):
