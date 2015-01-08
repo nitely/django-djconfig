@@ -11,7 +11,7 @@ from djconfig.config import config, prefixer
 from djconfig.models import Config as ConfigModel
 from djconfig.settings import BACKEND, PREFIX
 
-__version__ = "0.1.7"
+__version__ = "0.1.8"
 __all__ = ['config', 'register']
 
 _registered_forms = set()

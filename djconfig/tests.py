@@ -3,7 +3,8 @@
 from __future__ import unicode_literals
 import datetime
 
-from django.test import TestCase, override_settings
+from django.test import TestCase
+from django.test.utils import override_settings
 from django.core.cache import cache as _cache
 from django import forms
 from django.core.cache import get_cache
