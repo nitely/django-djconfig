@@ -224,9 +224,6 @@ TEST_CACHES = {
     'good': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     },
-    'also_good': {
-        'BACKEND': 'djconfig.backends.TestingCache',
-    },
     'bad': {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
     }
@@ -285,10 +282,6 @@ class DjConfigMiddlewareTest(TestCase):
             middleware = DjConfigLocMemMiddleware()
             self.assertIsNone(middleware.check_backend())
 
-            djconfig.BACKEND = 'also_good'
-            middleware = DjConfigLocMemMiddleware()
-            self.assertIsNone(middleware.check_backend())
-
             djconfig.BACKEND = 'bad'
             self.assertRaises(ValueError, middleware.check_backend)
         finally:
@@ -300,7 +293,7 @@ TESTING_BACKEND_CACHES = {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     },
     'djconfig': {
-        'BACKEND': 'djconfig.backends.TestingCache',
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         'LOCATION': 'test-djconfig',
     }
 }
