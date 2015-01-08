@@ -317,9 +317,14 @@ class DjConfigBackendTest(TestCase):
         TestingCache can't be cleared (it is persistent)
         """
         cache = get_cache('djconfig')
+        default_cache = get_cache('default')
 
         cache.set('foo', "foovalue")
         self.assertIsNotNone(cache.get('foo'))
 
+        default_cache.set('bar', "barvalue")
+        self.assertIsNotNone(default_cache.get('bar'))
+
         _cache.clear()
         self.assertIsNotNone(cache.get('foo'))
+        self.assertIsNone(default_cache.get('foo'))
