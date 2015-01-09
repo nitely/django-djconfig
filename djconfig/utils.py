@@ -3,13 +3,19 @@
 from __future__ import unicode_literals
 from functools import wraps
 
-from . import config
+from djconfig.settings import PREFIX
+
+
+def prefixer(key):
+    return "%s:%s" % (PREFIX, key)
 
 
 def override_djconfig(**new_cache_values):
     """
     This is similar to Django's @override_settings, use it in testing.
     """
+    from . import config
+
     def decorator(func):
         @wraps(func)
         def func_wrapper(*args, **kw):

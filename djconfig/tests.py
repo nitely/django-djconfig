@@ -11,7 +11,8 @@ from django.core.cache import get_cache
 from django.conf import settings
 
 import djconfig
-from djconfig import prefixer
+from djconfig.registry import _registered_forms, load
+from djconfig.utils import prefixer
 from djconfig.forms import ConfigForm
 from djconfig.models import Config as ConfigModel
 from djconfig.config import Config as ConfigCache
@@ -35,7 +36,7 @@ class DjConfigTest(TestCase):
 
     def setUp(self):
         _cache.clear()
-        djconfig._registered_forms.clear()
+        _registered_forms.clear()
 
         self.cache = get_cache(djconfig.BACKEND)
 
@@ -44,7 +45,7 @@ class DjConfigTest(TestCase):
         register forms
         """
         djconfig.register(FooForm)
-        self.assertSetEqual(djconfig._registered_forms, {FooForm, })
+        self.assertSetEqual(_registered_forms, {FooForm, })
 
     def test_register_invalid_form(self):
         """
@@ -60,6 +61,7 @@ class DjConfigTest(TestCase):
         Load initial configuration into the cache
         """
         djconfig.register(FooForm)
+        load()
         keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number', 'integer', 'url']
         values = self.cache.get_many([prefixer(k) for k in keys])
         self.assertDictEqual(values, {prefixer('boolean'): True,
@@ -84,6 +86,7 @@ class DjConfigTest(TestCase):
         ConfigModel.objects.bulk_create(data)
 
         djconfig.register(FooForm)
+        load()
 
         keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number', 'integer', 'url']
         values = self.cache.get_many([prefixer(k) for k in keys])
@@ -106,6 +109,7 @@ class DjConfigTest(TestCase):
         """
         ConfigModel.objects.create(key='char', value=u"áéíóú")
         djconfig.register(FooForm)
+        load()
         self.assertEqual(self.cache.get(prefixer('char')), u"áéíóú")
 
     def test_load_from_database_invalid(self):
@@ -114,6 +118,7 @@ class DjConfigTest(TestCase):
         """
         ConfigModel.objects.create(key='integer', value="string")
         djconfig.register(FooForm)
+        load()
         self.assertEqual(self.cache.get(prefixer('integer')), 123)
 
     def test_load_updated_at(self):
@@ -139,7 +144,7 @@ class DjConfigFormsTest(TestCase):
 
     def setUp(self):
         _cache.clear()
-        djconfig._registered_forms.clear()
+        _registered_forms.clear()
 
     def test_config_form(self):
         """
@@ -210,7 +215,7 @@ class DjConfigConfTest(TestCase):
 
     def setUp(self):
         _cache.clear()
-        djconfig._registered_forms.clear()
+        _registered_forms.clear()
 
     def test_config(self):
         """
@@ -236,7 +241,7 @@ class DjConfigMiddlewareTest(TestCase):
 
     def setUp(self):
         _cache.clear()
-        djconfig._registered_forms.clear()
+        _registered_forms.clear()
 
     def test_config_middleware_process_request(self):
         """
@@ -329,7 +334,7 @@ class DjConfigUtilsTest(TestCase):
 
     def setUp(self):
         _cache.clear()
-        djconfig._registered_forms.clear()
+        _registered_forms.clear()
 
     def test_override_djconfig(self):
         """
