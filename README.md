@@ -42,6 +42,8 @@ class AppConfigForm(ConfigForm):
 Registering your form:
 >**Note**: On django<=1.6 there is no good place to put startup code,
 I've tried urls.py and manager.py and both of them seems to work fine.
+>
+> On django>=1.7 use the `AppConfig.ready()`.
 
 ```python
 # urls.py
@@ -162,10 +164,17 @@ def test_something(self):
     # ...
 ```
 
-
 ## Limitations
 
 * Although you can register several forms, field names must be unique across forms.
+
+## Changelog
+
+Breaking changes:
+
+**v0.2.x**
+* Configuration is lazy loaded, now. This means the database will get queried the first time an option is accessed *(ie: `confi.my_first_key`)*
+* Only `config` and `register` are available for importing from the root module *djconfig*.
 
 ## Contributing
 

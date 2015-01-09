@@ -10,14 +10,15 @@ from django import forms
 from django.core.cache import get_cache
 from django.conf import settings
 
-import djconfig
-from djconfig import prefixer
-from djconfig.forms import ConfigForm
-from djconfig.models import Config as ConfigModel
-from djconfig.config import Config as ConfigCache
-from djconfig.middleware import DjConfigLocMemMiddleware
-from djconfig import forms as djconfig_forms
-from djconfig.utils import override_djconfig
+from . import registry
+from . import forms as djconfig_forms
+from . import settings as djconfig_settings
+from .utils import prefixer
+from .utils import override_djconfig
+from .conf import Config, config
+from .forms import ConfigForm
+from .models import Config as ConfigModel
+from .middleware import DjConfigLocMemMiddleware
 
 
 class FooForm(ConfigForm):
@@ -35,16 +36,17 @@ class DjConfigTest(TestCase):
 
     def setUp(self):
         _cache.clear()
-        djconfig._registered_forms.clear()
+        config._reset()
+        registry._registered_forms.clear()
 
-        self.cache = get_cache(djconfig.BACKEND)
+        self.cache = get_cache(djconfig_settings.BACKEND)
 
     def test_register(self):
         """
         register forms
         """
-        djconfig.register(FooForm)
-        self.assertSetEqual(djconfig._registered_forms, {FooForm, })
+        registry.register(FooForm)
+        self.assertSetEqual(registry._registered_forms, {FooForm, })
 
     def test_register_invalid_form(self):
         """
@@ -53,13 +55,14 @@ class DjConfigTest(TestCase):
         class BadForm(forms.Form):
             """"""
 
-        self.assertRaises(AssertionError, djconfig.register, BadForm)
+        self.assertRaises(AssertionError, registry.register, BadForm)
 
     def test_load(self):
         """
         Load initial configuration into the cache
         """
-        djconfig.register(FooForm)
+        registry.register(FooForm)
+        registry.load()
         keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number', 'integer', 'url']
         values = self.cache.get_many([prefixer(k) for k in keys])
         self.assertDictEqual(values, {prefixer('boolean'): True,
@@ -83,7 +86,8 @@ class DjConfigTest(TestCase):
                 ConfigModel(key='url', value="foo2.com")]
         ConfigModel.objects.bulk_create(data)
 
-        djconfig.register(FooForm)
+        registry.register(FooForm)
+        registry.load()
 
         keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number', 'integer', 'url']
         values = self.cache.get_many([prefixer(k) for k in keys])
@@ -97,7 +101,7 @@ class DjConfigTest(TestCase):
 
         # use initial if the field is not found in the db
         ConfigModel.objects.get(key='char').delete()
-        djconfig.load()
+        registry.load()
         self.assertEqual(self.cache.get(prefixer('char')), "foo")
 
     def test_load_unicode(self):
@@ -105,7 +109,8 @@ class DjConfigTest(TestCase):
         Load configuration into the cache
         """
         ConfigModel.objects.create(key='char', value=u"áéíóú")
-        djconfig.register(FooForm)
+        registry.register(FooForm)
+        registry.load()
         self.assertEqual(self.cache.get(prefixer('char')), u"áéíóú")
 
     def test_load_from_database_invalid(self):
@@ -113,21 +118,34 @@ class DjConfigTest(TestCase):
         Load initial if the db value is invalid
         """
         ConfigModel.objects.create(key='integer', value="string")
-        djconfig.register(FooForm)
+        registry.register(FooForm)
+        registry.load()
         self.assertEqual(self.cache.get(prefixer('integer')), 123)
 
     def test_load_updated_at(self):
         """
         Load updated_at
         """
-        djconfig.register(FooForm)
+        registry.register(FooForm)
+        registry.load()
         value = self.cache.get(prefixer("_updated_at"))
         self.assertIsNone(value)
 
         ConfigModel.objects.create(key="_updated_at", value="string")
-        djconfig.load()
+        registry.load()
         value = self.cache.get(prefixer("_updated_at"))
         self.assertEqual(value, "string")
+
+    def test_lazy_load(self):
+        """
+        Load the config the first time you access an attribute
+        """
+        registry.register(FooForm)
+        # registry.load()
+        value = self.cache.get(prefixer("char"))
+        self.assertIsNone(value)
+
+        self.assertEqual(config.char, "foo")
 
 
 class BarForm(ConfigForm):
@@ -139,7 +157,8 @@ class DjConfigFormsTest(TestCase):
 
     def setUp(self):
         _cache.clear()
-        djconfig._registered_forms.clear()
+        config._reset()
+        registry._registered_forms.clear()
 
     def test_config_form(self):
         """
@@ -167,13 +186,13 @@ class DjConfigFormsTest(TestCase):
         """
         config form, update cache on form save
         """
-        djconfig.register(BarForm)
+        registry.register(BarForm)
 
         form = BarForm(data={"char": "foo2", })
         self.assertTrue(form.is_valid())
         form.save()
 
-        cache = get_cache(djconfig.BACKEND)
+        cache = get_cache(djconfig_settings.BACKEND)
         self.assertEqual(cache.get(prefixer('char')), "foo2")
 
     def test_config_form_updated_at(self):
@@ -210,15 +229,16 @@ class DjConfigConfTest(TestCase):
 
     def setUp(self):
         _cache.clear()
-        djconfig._registered_forms.clear()
+        config._reset()
+        registry._registered_forms.clear()
 
     def test_config(self):
         """
         config wrapper
         """
-        cache = get_cache(djconfig.BACKEND)
+        cache = get_cache(djconfig_settings.BACKEND)
         cache.set(prefixer("key"), "value")
-        config = ConfigCache()
+        config = Config()
         self.assertEqual(config.key, "value")
 
 
@@ -236,15 +256,17 @@ class DjConfigMiddlewareTest(TestCase):
 
     def setUp(self):
         _cache.clear()
-        djconfig._registered_forms.clear()
+        config._reset()
+        registry._registered_forms.clear()
 
     def test_config_middleware_process_request(self):
         """
         config middleware, reload cache
         """
         ConfigModel.objects.create(key="char", value="foo")
-        djconfig.register(BarForm)
-        cache = get_cache(djconfig.BACKEND)
+        registry.register(BarForm)
+        registry.load()
+        cache = get_cache(djconfig_settings.BACKEND)
 
         cache.set(prefixer('char'), None)
         self.assertIsNone(cache.get(prefixer('char')))
@@ -276,18 +298,18 @@ class DjConfigMiddlewareTest(TestCase):
         """
         only LocMemCache should be allowed
         """
-        org_cache, org_djbackend = settings.CACHES, djconfig.BACKEND
+        org_cache, org_djbackend = settings.CACHES, djconfig_settings.BACKEND
         try:
             settings.CACHES = TEST_CACHES
 
-            djconfig.BACKEND = 'good'
+            djconfig_settings.BACKEND = 'good'
             middleware = DjConfigLocMemMiddleware()
             self.assertIsNone(middleware.check_backend())
 
-            djconfig.BACKEND = 'bad'
+            djconfig_settings.BACKEND = 'bad'
             self.assertRaises(ValueError, middleware.check_backend)
         finally:
-            settings.CACHES, djconfig.BACKEND = org_cache, org_djbackend
+            settings.CACHES, djconfig_settings.BACKEND = org_cache, org_djbackend
 
 
 TESTING_BACKEND_CACHES = {
@@ -305,6 +327,7 @@ class DjConfigBackendTest(TestCase):
 
     def setUp(self):
         _cache.clear()
+        config._reset()
 
     @override_settings(CACHES=TESTING_BACKEND_CACHES)
     def test_config_testing_backend(self):
@@ -329,7 +352,8 @@ class DjConfigUtilsTest(TestCase):
 
     def setUp(self):
         _cache.clear()
-        djconfig._registered_forms.clear()
+        config._reset()
+        registry._registered_forms.clear()
 
     def test_override_djconfig(self):
         """
@@ -337,14 +361,14 @@ class DjConfigUtilsTest(TestCase):
         """
         @override_djconfig(foo='bar', foo2='bar2')
         def my_test(my_var):
-            return my_var, djconfig.config.foo, djconfig.config.foo2
+            return my_var, config.foo, config.foo2
 
-        djconfig.config._set('foo', 'org')
-        djconfig.config._set('foo2', 'org2')
+        config._set('foo', 'org')
+        config._set('foo2', 'org2')
 
         res = my_test("stuff")
         self.assertEqual(res, ("stuff", 'bar', 'bar2'))
-        self.assertEqual((djconfig.config.foo, djconfig.config.foo2), ("org", 'org2'))
+        self.assertEqual((config.foo, config.foo2), ("org", 'org2'))
 
     def test_override_djconfig_except(self):
         """
@@ -354,11 +378,11 @@ class DjConfigUtilsTest(TestCase):
         def my_test():
             raise AssertionError
 
-        djconfig.config._set('foo', 'org')
+        config._set('foo', 'org')
 
         try:
             my_test()
         except AssertionError:
             pass
 
-        self.assertEqual(djconfig.config.foo, "org")
+        self.assertEqual(config.foo, "org")

@@ -2,10 +2,12 @@
 
 from __future__ import unicode_literals
 
-from django.conf import settings
+from django.conf import settings as django_settings
 
-import djconfig
-from djconfig.models import Config as ConfigModel
+from . import conf
+from . import registry
+from . import models
+from . import settings
 
 __all__ = ['DjConfigLocMemMiddleware', ]
 
@@ -20,7 +22,7 @@ class DjConfigLocMemMiddleware(object):
         self.reload()
 
     def check_backend(self):
-        backend = settings.CACHES[djconfig.BACKEND]
+        backend = django_settings.CACHES[settings.BACKEND]
 
         if not backend['BACKEND'].endswith((".LocMemCache", ".TestingCache")):
             raise ValueError("DjConfigLocMemMiddleware requires LocMemCache as cache")
@@ -29,7 +31,7 @@ class DjConfigLocMemMiddleware(object):
         """
         This reloads the cache *only* if the database has changed.
         """
-        data = dict(ConfigModel.objects.filter(key="_updated_at").values_list('key', 'value'))
+        data = dict(models.Config.objects.filter(key="_updated_at").values_list('key', 'value'))
 
-        if data.get('_updated_at') != djconfig.config._updated_at:
-            djconfig.load()
+        if data.get('_updated_at') != conf.config._updated_at:
+            registry.load()
