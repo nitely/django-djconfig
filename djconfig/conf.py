@@ -4,9 +4,9 @@ from __future__ import unicode_literals
 
 from django.core.cache import get_cache
 
-from djconfig.settings import BACKEND
-from djconfig.utils import prefixer
-from djconfig import registry
+from . import registry
+from .settings import BACKEND
+from .utils import prefixer
 
 
 class Config(object):

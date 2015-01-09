@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-import djconfig
+from . import conf
 
 
 def config(request):
@@ -15,4 +15,4 @@ def config(request):
             'djconfig.context_processors.config',
         )
     """
-    return {"config": djconfig.config, }
+    return {"config": conf.config, }

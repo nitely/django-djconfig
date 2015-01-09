@@ -5,10 +5,9 @@ from __future__ import unicode_literals
 from django.core.cache import get_cache
 from django.conf import settings as django_settings
 
-from djconfig.forms import ConfigForm
-from djconfig.models import Config as ConfigModel
-from djconfig.settings import BACKEND
-from djconfig.utils import prefixer
+from . import models
+from .settings import BACKEND
+from .utils import prefixer
 
 _registered_forms = set()
 
@@ -20,9 +19,11 @@ def register(form_class):
     :param form_class: The form to be registered.
     :type form_class: ConfigForm.
     """
+    from . import forms  # avoids circular dependency
+
     global _registered_forms
 
-    assert issubclass(form_class, ConfigForm), \
+    assert issubclass(form_class, forms.ConfigForm), \
         "The form does not inherit from ConfigForm"
 
     _registered_forms.add(form_class)
@@ -38,7 +39,7 @@ def load():
     global _registered_forms
 
     cache_values = {}
-    data = dict(ConfigModel.objects.all().values_list('key', 'value'))
+    data = dict(models.Config.objects.all().values_list('key', 'value'))
 
     for form_class in _registered_forms:
         form = form_class(data=data)
