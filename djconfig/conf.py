@@ -5,14 +5,14 @@ from __future__ import unicode_literals
 from django.core.cache import get_cache
 
 from . import registry
-from .settings import BACKEND
+from . import settings
 from .utils import prefixer
 
 
 class Config(object):
 
     def __init__(self):
-        self._cache = get_cache(BACKEND)
+        self._cache = get_cache(settings.BACKEND)
         self._is_loaded = False
 
     def __getattr__(self, key):
@@ -22,6 +22,9 @@ class Config(object):
     def _set(self, key, value):
         self._lazy_load()
         self._cache.set(prefixer(key), value)
+
+    def _reset(self):
+        self._is_loaded = False
 
     def _lazy_load(self):
         if self._is_loaded:

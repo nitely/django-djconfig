@@ -36,6 +36,7 @@ class DjConfigTest(TestCase):
 
     def setUp(self):
         _cache.clear()
+        config._reset()
         registry._registered_forms.clear()
 
         self.cache = get_cache(djconfig_settings.BACKEND)
@@ -126,6 +127,7 @@ class DjConfigTest(TestCase):
         Load updated_at
         """
         registry.register(FooForm)
+        registry.load()
         value = self.cache.get(prefixer("_updated_at"))
         self.assertIsNone(value)
 
@@ -133,6 +135,17 @@ class DjConfigTest(TestCase):
         registry.load()
         value = self.cache.get(prefixer("_updated_at"))
         self.assertEqual(value, "string")
+
+    def test_lazy_load(self):
+        """
+        Load the config the first time you access an attribute
+        """
+        registry.register(FooForm)
+        # registry.load()
+        value = self.cache.get(prefixer("char"))
+        self.assertIsNone(value)
+
+        self.assertEqual(config.char, "foo")
 
 
 class BarForm(ConfigForm):
@@ -144,6 +157,7 @@ class DjConfigFormsTest(TestCase):
 
     def setUp(self):
         _cache.clear()
+        config._reset()
         registry._registered_forms.clear()
 
     def test_config_form(self):
@@ -215,6 +229,7 @@ class DjConfigConfTest(TestCase):
 
     def setUp(self):
         _cache.clear()
+        config._reset()
         registry._registered_forms.clear()
 
     def test_config(self):
@@ -241,6 +256,7 @@ class DjConfigMiddlewareTest(TestCase):
 
     def setUp(self):
         _cache.clear()
+        config._reset()
         registry._registered_forms.clear()
 
     def test_config_middleware_process_request(self):
@@ -249,6 +265,7 @@ class DjConfigMiddlewareTest(TestCase):
         """
         ConfigModel.objects.create(key="char", value="foo")
         registry.register(BarForm)
+        registry.load()
         cache = get_cache(djconfig_settings.BACKEND)
 
         cache.set(prefixer('char'), None)
@@ -310,6 +327,7 @@ class DjConfigBackendTest(TestCase):
 
     def setUp(self):
         _cache.clear()
+        config._reset()
 
     @override_settings(CACHES=TESTING_BACKEND_CACHES)
     def test_config_testing_backend(self):
@@ -334,6 +352,7 @@ class DjConfigUtilsTest(TestCase):
 
     def setUp(self):
         _cache.clear()
+        config._reset()
         registry._registered_forms.clear()
 
     def test_override_djconfig(self):
