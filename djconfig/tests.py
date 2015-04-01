@@ -29,7 +29,7 @@ class FooForm(ConfigForm):
     email = forms.EmailField(initial="foo@bar.com")
     float_number = forms.FloatField(initial=1.23)
     integer = forms.IntegerField(initial=123)
-    url = forms.URLField(initial="foo.com")
+    url = forms.URLField(initial="foo.com/")
 
 
 class DjConfigTest(TestCase):
@@ -71,7 +71,7 @@ class DjConfigTest(TestCase):
                                       prefixer('email'): "foo@bar.com",
                                       prefixer('float_number'): 1.23,
                                       prefixer('integer'): 123,
-                                      prefixer('url'): "foo.com"})
+                                      prefixer('url'): "foo.com/"})
 
     def test_load_from_database(self):
         """
@@ -83,7 +83,7 @@ class DjConfigTest(TestCase):
                 ConfigModel(key='char', value="foo2"),
                 ConfigModel(key='email', value="foo2@bar.com"),
                 ConfigModel(key='integer', value=321),
-                ConfigModel(key='url', value="foo2.com")]
+                ConfigModel(key='url', value="foo2.com/")]
         ConfigModel.objects.bulk_create(data)
 
         registry.register(FooForm)
