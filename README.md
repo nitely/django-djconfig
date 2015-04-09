@@ -41,7 +41,7 @@ class AppConfigForm(ConfigForm):
 
 Registering your form:
 
-Read the (django applications doc)[https://docs.djangoproject.com/en/1.8/ref/applications/]
+Read the [django applications doc](https://docs.djangoproject.com/en/1.8/ref/applications/)
 
 ```python
 # apps.py
@@ -180,7 +180,7 @@ def test_something(self):
 
 ## Changelog
 
-(changelog)[https://github.com/nitely/django-djconfig/blob/master/HISTORY.md]
+[changelog](https://github.com/nitely/django-djconfig/blob/master/HISTORY.md)
 
 ## License
 
