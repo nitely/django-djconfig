@@ -16,7 +16,6 @@ class ConfigForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(ConfigForm, self).__init__(*args, **kwargs)
 
-        # TODO: test
         if conf.config._is_loaded:
             initial_config = {field_name: getattr(conf.config, field_name)
                               for field_name in self.fields}

@@ -21,14 +21,12 @@ def override_djconfig(**new_cache_values):
         def func_wrapper(*args, **kw):
             old_cache_values = {key: getattr(conf.config, key) for key in new_cache_values}
 
-            for key, value in new_cache_values.items():
-                conf.config._set(key, value)
+            conf.config._set_many(new_cache_values)
 
             try:
                 return func(*args, **kw)
             finally:
-                for key, value in old_cache_values.items():
-                    conf.config._set(key, value)
+                conf.config._set_many(old_cache_values)
 
         return func_wrapper
 

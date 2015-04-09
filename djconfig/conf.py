@@ -20,18 +20,16 @@ class Config(object):
     def __getattr__(self, key):
         self._lazy_load()
 
-        if key not in self._keys:  # TODO: test
+        if key not in self._keys:
             raise AttributeError('Attribute "%s" not found in config.' % key)
 
         return self._cache.get(prefixer(key))
 
     def _set(self, key, value):
-        self._lazy_load()
         self._cache.set(prefixer(key), value)
-        self._keys.add(key)  # TODO: test
+        self._keys.add(key)
 
     def _set_many(self, items):
-        # TODO: test
         self._cache.set_many({prefixer(key): value
                               for key, value in items.items()})
         self._keys.update(items.keys())
@@ -71,7 +69,7 @@ class Config(object):
             return
 
         self._reload()
-        self._is_loaded = True  # TODO: test
+        self._is_loaded = True
 
 
 config = Config()
