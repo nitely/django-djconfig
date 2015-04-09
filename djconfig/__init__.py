@@ -5,5 +5,5 @@ from __future__ import unicode_literals
 from .conf import config
 from .registry import register
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __all__ = ['config', 'register']
