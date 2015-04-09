@@ -1,4 +1,4 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
 
@@ -9,6 +9,5 @@ __all__ = ['Config', ]
 
 class Config(models.Model):
 
-    #TODO: use index=True on key field
     key = models.CharField(max_length=75, unique=True)
     value = models.TextField(null=True, blank=True)

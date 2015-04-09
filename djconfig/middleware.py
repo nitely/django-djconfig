@@ -1,11 +1,10 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
 
 from django.conf import settings as django_settings
 
 from . import conf
-from . import registry
 from . import models
 from . import settings
 
@@ -31,7 +30,9 @@ class DjConfigLocMemMiddleware(object):
         """
         This reloads the cache *only* if the database has changed.
         """
-        data = dict(models.Config.objects.filter(key="_updated_at").values_list('key', 'value'))
+        data = dict(models.Config.objects
+                    .filter(key='_updated_at')
+                    .values_list('key', 'value'))
 
         if data.get('_updated_at') != conf.config._updated_at:
-            registry.load()
+            conf.config._reload()

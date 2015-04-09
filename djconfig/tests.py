@@ -1,4 +1,4 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
 import datetime
@@ -62,7 +62,7 @@ class DjConfigTest(TestCase):
         Load initial configuration into the cache
         """
         registry.register(FooForm)
-        registry.load()
+        config._lazy_load()
         keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number', 'integer', 'url']
         values = self.cache.get_many([prefixer(k) for k in keys])
         self.assertDictEqual(values, {prefixer('boolean'): True,
@@ -87,7 +87,7 @@ class DjConfigTest(TestCase):
         ConfigModel.objects.bulk_create(data)
 
         registry.register(FooForm)
-        registry.load()
+        config._lazy_load()
 
         keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number', 'integer', 'url']
         values = self.cache.get_many([prefixer(k) for k in keys])
@@ -101,7 +101,8 @@ class DjConfigTest(TestCase):
 
         # use initial if the field is not found in the db
         ConfigModel.objects.get(key='char').delete()
-        registry.load()
+        config._reset()
+        config._lazy_load()
         self.assertEqual(self.cache.get(prefixer('char')), "foo")
 
     def test_load_unicode(self):
@@ -110,7 +111,7 @@ class DjConfigTest(TestCase):
         """
         ConfigModel.objects.create(key='char', value=u"áéíóú")
         registry.register(FooForm)
-        registry.load()
+        config._lazy_load()
         self.assertEqual(self.cache.get(prefixer('char')), u"áéíóú")
 
     def test_load_from_database_invalid(self):
@@ -119,7 +120,7 @@ class DjConfigTest(TestCase):
         """
         ConfigModel.objects.create(key='integer', value="string")
         registry.register(FooForm)
-        registry.load()
+        config._lazy_load()
         self.assertEqual(self.cache.get(prefixer('integer')), 123)
 
     def test_load_updated_at(self):
@@ -127,12 +128,13 @@ class DjConfigTest(TestCase):
         Load updated_at
         """
         registry.register(FooForm)
-        registry.load()
+        config._lazy_load()
         value = self.cache.get(prefixer("_updated_at"))
         self.assertIsNone(value)
 
         ConfigModel.objects.create(key="_updated_at", value="string")
-        registry.load()
+        config._reset()
+        config._lazy_load()
         value = self.cache.get(prefixer("_updated_at"))
         self.assertEqual(value, "string")
 
@@ -234,11 +236,10 @@ class DjConfigConfTest(TestCase):
 
     def test_config(self):
         """
-        config wrapper
+        config
         """
-        cache = get_cache(djconfig_settings.BACKEND)
-        cache.set(prefixer("key"), "value")
         config = Config()
+        config._set("key", "value")
         self.assertEqual(config.key, "value")
 
 
@@ -265,7 +266,7 @@ class DjConfigMiddlewareTest(TestCase):
         """
         ConfigModel.objects.create(key="char", value="foo")
         registry.register(BarForm)
-        registry.load()
+        config._lazy_load()
         cache = get_cache(djconfig_settings.BACKEND)
 
         cache.set(prefixer('char'), None)
