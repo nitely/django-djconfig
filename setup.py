@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-from setuptools import setup
+from setuptools import setup, find_packages
 
 README = open(os.path.join(os.path.dirname(__file__), 'README.md')).read()
 
@@ -20,6 +20,7 @@ setup(
     packages=[
         'djconfig',
     ],
+    packages=find_packages(exclude=['example', ]),
     include_package_data=True,
     zip_safe=False,
     license='MIT License',
