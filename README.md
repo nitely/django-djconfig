@@ -18,7 +18,7 @@ DjConfig requires the following software to be installed:
 ## Configuration
 
 1. Add `djconfig` to your *INSTALLED_APPS*
-2. Run `python manage.py syncdb`
+2. Run `python manage.py migrate`
 3. [Set a cache backend](https://github.com/nitely/django-djconfig#backends)
 4. (Optional) Add `djconfig.middleware.DjConfigLocMemMiddleware` to your *MIDDLEWARE_CLASSES* if you are using django `LocMemCache` and running multiple processes
 5. (Optional) Add `djconfig.context_processors.config` to your *TEMPLATE_CONTEXT_PROCESSORS* for accessing `config` within your templates
@@ -40,19 +40,29 @@ class AppConfigForm(ConfigForm):
 ```
 
 Registering your form:
->**Note**: On django<=1.6 there is no good place to put startup code,
-I've tried urls.py and manager.py and both of them seems to work fine.
->
-> On django>=1.7 use the `AppConfig.ready()`.
+
+Read the (django applications doc)[https://docs.djangoproject.com/en/1.8/ref/applications/]
 
 ```python
-# urls.py
+# apps.py
 
-import djconfig
+from django.apps import AppConfig
 
-djconfig.register(AppConfigForm)
 
-# ...
+class MyAppConfig(AppConfig):
+
+    name = 'myapp'
+    verbose_name = "Myapp"
+
+    def ready(self):
+        self.register_config()
+        # ...
+
+    def register_config(self):
+        import djconfig
+        from .forms import MyConfigForm
+
+        djconfig.register(MyConfigForm)
 ```
 
 Accessing your config variables:
@@ -170,25 +180,8 @@ def test_something(self):
 
 ## Changelog
 
-Breaking changes:
+(changelog)[https://github.com/nitely/django-djconfig/blob/master/HISTORY.md]
 
-**v0.2.x**
-* Configuration is lazy loaded, now. This means the database will get queried the first time an option is accessed *(ie: `confi.my_first_key`)*
-* Only `config` and `register` are available for importing from the root module *djconfig*.
+## License
 
-## Contributing
-
-Feel free to check out the source code and submit pull requests.
-
-You may also report any bug or propose new features in the [issues tracker](https://github.com/nitely/django-djconfig/issues)
-
-## Copyright / License
-
-Copyright 2014 [Esteban Castro Borsani](https://github.com/nitely).
-
-Licensed under the [MIT License](https://github.com/nitely/django-djconfig/blob/master/LICENSE).
-
-Unless required by applicable law or agreed to in writing,
-software distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and limitations under the License.
+MIT
