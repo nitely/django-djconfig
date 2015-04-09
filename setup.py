@@ -17,9 +17,6 @@ setup(
     author_email='ecastroborsani@gmail.com',
     long_description=README,
     url='https://github.com/nitely/django-djconfig',
-    packages=[
-        'djconfig',
-    ],
     packages=find_packages(exclude=['example', ]),
     include_package_data=True,
     zip_safe=False,
