@@ -57,98 +57,6 @@ class DjConfigTest(TestCase):
 
         self.assertRaises(AssertionError, registry.register, BadForm)
 
-    def test_load(self):
-        """
-        Load initial configuration into the cache
-        """
-        registry.register(FooForm)
-        config._lazy_load()
-        keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number', 'integer', 'url']
-        values = self.cache.get_many([prefixer(k) for k in keys])
-        self.assertDictEqual(values, {prefixer('boolean'): True,
-                                      prefixer('boolean_false'): False,
-                                      prefixer('char'): "foo",
-                                      prefixer('email'): "foo@bar.com",
-                                      prefixer('float_number'): 1.23,
-                                      prefixer('integer'): 123,
-                                      prefixer('url'): "foo.com/"})
-
-    def test_load_from_database(self):
-        """
-        Load configuration into the cache
-        """
-        data = [ConfigModel(key='boolean', value=False),
-                ConfigModel(key='boolean_false', value=True),
-                ConfigModel(key='float_number', value=2.1),
-                ConfigModel(key='char', value="foo2"),
-                ConfigModel(key='email', value="foo2@bar.com"),
-                ConfigModel(key='integer', value=321),
-                ConfigModel(key='url', value="foo2.com/")]
-        ConfigModel.objects.bulk_create(data)
-
-        registry.register(FooForm)
-        config._lazy_load()
-
-        keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number', 'integer', 'url']
-        values = self.cache.get_many([prefixer(k) for k in keys])
-        self.assertDictEqual(values, {prefixer('boolean'): False,
-                                      prefixer('boolean_false'): True,
-                                      prefixer('float_number'): 2.1,
-                                      prefixer('char'): "foo2",
-                                      prefixer('email'): "foo2@bar.com",
-                                      prefixer('integer'): 321,
-                                      prefixer('url'): "http://foo2.com/"})
-
-        # use initial if the field is not found in the db
-        ConfigModel.objects.get(key='char').delete()
-        config._reset()
-        config._lazy_load()
-        self.assertEqual(self.cache.get(prefixer('char')), "foo")
-
-    def test_load_unicode(self):
-        """
-        Load configuration into the cache
-        """
-        ConfigModel.objects.create(key='char', value=u"áéíóú")
-        registry.register(FooForm)
-        config._lazy_load()
-        self.assertEqual(self.cache.get(prefixer('char')), u"áéíóú")
-
-    def test_load_from_database_invalid(self):
-        """
-        Load initial if the db value is invalid
-        """
-        ConfigModel.objects.create(key='integer', value="string")
-        registry.register(FooForm)
-        config._lazy_load()
-        self.assertEqual(self.cache.get(prefixer('integer')), 123)
-
-    def test_load_updated_at(self):
-        """
-        Load updated_at
-        """
-        registry.register(FooForm)
-        config._lazy_load()
-        value = self.cache.get(prefixer("_updated_at"))
-        self.assertIsNone(value)
-
-        ConfigModel.objects.create(key="_updated_at", value="string")
-        config._reset()
-        config._lazy_load()
-        value = self.cache.get(prefixer("_updated_at"))
-        self.assertEqual(value, "string")
-
-    def test_lazy_load(self):
-        """
-        Load the config the first time you access an attribute
-        """
-        registry.register(FooForm)
-        # registry.load()
-        value = self.cache.get(prefixer("char"))
-        self.assertIsNone(value)
-
-        self.assertEqual(config.char, "foo")
-
 
 class BarForm(ConfigForm):
 
@@ -161,6 +69,31 @@ class DjConfigFormsTest(TestCase):
         _cache.clear()
         config._reset()
         registry._registered_forms.clear()
+
+    def test_config_form_populate_if_loaded(self):
+        """
+        config form, populate initial data only if the config is loaded
+        """
+        registry.register(BarForm)
+        config._set("char", "foo2")
+
+        form = BarForm()
+        self.assertTrue('char' not in form.initial)
+
+        config._is_loaded = True
+        form = BarForm()
+        self.assertEqual(form.initial['char'], 'foo2')
+
+    def test_config_form_allow_initial_overwrite(self):
+        """
+        config form, allow user to pass initial data
+        """
+        registry.register(BarForm)
+        config._set("char", "foo2")
+        config._is_loaded = True
+
+        form = BarForm(initial={'char': 'bar', })
+        self.assertEqual(form.initial['char'], 'bar')
 
     def test_config_form(self):
         """
@@ -233,14 +166,183 @@ class DjConfigConfTest(TestCase):
         _cache.clear()
         config._reset()
         registry._registered_forms.clear()
+        self.cache = get_cache(djconfig_settings.BACKEND)
 
-    def test_config(self):
+    def test_config_attr_error(self):
         """
-        config
+        config attribute error when it's not in keys
         """
         config = Config()
-        config._set("key", "value")
-        self.assertEqual(config.key, "value")
+
+        def wrapper():
+            return config.foo
+
+        self.assertRaises(AttributeError, wrapper)
+
+        config._set('foo', 'bar')
+        self.assertEqual(wrapper(), 'bar')
+
+    def test_config_set(self):
+        """
+        config set adds the item
+        """
+        config = Config()
+        config._set('foo', 'bar')
+        self.assertTrue('foo' in config._keys)
+        self.assertEqual(config.foo, 'bar')
+
+    def test_config_set_many(self):
+        """
+        config set adds the key
+        """
+        config = Config()
+        config._set_many({'foo': 'bar', })
+        self.assertTrue('foo' in config._keys)
+        self.assertEqual(config.foo, 'bar')
+
+    def test_config_load(self):
+        """
+        Load initial configuration into the cache
+        """
+        registry.register(FooForm)
+        config._lazy_load()
+        keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number', 'integer', 'url']
+        values = self.cache.get_many([prefixer(k) for k in keys])
+        self.assertDictEqual(values, {prefixer('boolean'): True,
+                                      prefixer('boolean_false'): False,
+                                      prefixer('char'): "foo",
+                                      prefixer('email'): "foo@bar.com",
+                                      prefixer('float_number'): 1.23,
+                                      prefixer('integer'): 123,
+                                      prefixer('url'): "foo.com/"})
+
+    def test_config_load_from_database(self):
+        """
+        Load configuration into the cache
+        """
+        data = [ConfigModel(key='boolean', value=False),
+                ConfigModel(key='boolean_false', value=True),
+                ConfigModel(key='float_number', value=2.1),
+                ConfigModel(key='char', value="foo2"),
+                ConfigModel(key='email', value="foo2@bar.com"),
+                ConfigModel(key='integer', value=321),
+                ConfigModel(key='url', value="foo2.com/")]
+        ConfigModel.objects.bulk_create(data)
+
+        registry.register(FooForm)
+        config._lazy_load()
+
+        keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number', 'integer', 'url']
+        values = self.cache.get_many([prefixer(k) for k in keys])
+        self.assertDictEqual(values, {prefixer('boolean'): False,
+                                      prefixer('boolean_false'): True,
+                                      prefixer('float_number'): 2.1,
+                                      prefixer('char'): "foo2",
+                                      prefixer('email'): "foo2@bar.com",
+                                      prefixer('integer'): 321,
+                                      prefixer('url'): "http://foo2.com/"})
+
+        # use initial if the field is not found in the db
+        ConfigModel.objects.get(key='char').delete()
+        config._reset()
+        config._lazy_load()
+        self.assertEqual(self.cache.get(prefixer('char')), "foo")
+
+    def test_config_load_unicode(self):
+        """
+        Load configuration into the cache
+        """
+        ConfigModel.objects.create(key='char', value=u"áéíóú")
+        registry.register(FooForm)
+        config._lazy_load()
+        self.assertEqual(self.cache.get(prefixer('char')), u"áéíóú")
+
+    def test_config_load_from_database_invalid(self):
+        """
+        Load initial if the db value is invalid
+        """
+        ConfigModel.objects.create(key='integer', value="string")
+        registry.register(FooForm)
+        config._lazy_load()
+        self.assertEqual(self.cache.get(prefixer('integer')), 123)
+
+    def test_config_load_updated_at(self):
+        """
+        Load updated_at
+        """
+        registry.register(FooForm)
+        config._lazy_load()
+        value = self.cache.get(prefixer("_updated_at"))
+        self.assertIsNone(value)
+
+        ConfigModel.objects.create(key="_updated_at", value="string")
+        config._reset()
+        config._lazy_load()
+        value = self.cache.get(prefixer("_updated_at"))
+        self.assertEqual(value, "string")
+
+    def test_config_lazy_load(self):
+        """
+        Load the config the first time you access an attribute
+        """
+        registry.register(FooForm)
+        # registry.load()
+        value = self.cache.get(prefixer("char"))
+        self.assertIsNone(value)
+
+        self.assertEqual(config.char, "foo")
+
+    def test_config_lazy_load_race_condition(self):
+        """
+        It sets is_loaded *after* the reload.
+        """
+        class ConfigMock(Config):
+            def _reload(self):
+                raise ValueError
+
+        config = ConfigMock()
+        self.assertFalse(config._is_loaded)
+        self.assertRaises(ValueError, config._lazy_load)
+        self.assertFalse(config._is_loaded)
+
+    def test_config_lazy_load_once(self):
+        """
+        Reload is not called if already loaded
+        """
+        class ConfigMock(Config):
+            def _reload(self):
+                raise ValueError
+
+        config = ConfigMock()
+        config._is_loaded = True
+        self.assertIsNone(config._lazy_load())
+
+    def test_config_lazy_load_ok(self):
+        """
+        It sets is_loaded *after* the reload.
+        """
+        config = Config()
+
+        self.assertFalse(config._is_loaded)
+        config._lazy_load()
+        self.assertTrue(config._is_loaded)
+
+    def test_config_reload_in_keys(self):
+        """
+        Load the config the first time you access an attribute
+        """
+        registry.register(FooForm)
+        config._reload()
+        self.assertTrue('char' in config._keys)
+        self.assertEqual(config.char, "foo")
+
+    def test_config_reset(self):
+        """
+        Reset turn is_loaded to False
+        """
+        config._is_loaded = True
+        config._reset()
+        self.assertFalse(config._is_loaded)
 
 
 TEST_CACHES = {
