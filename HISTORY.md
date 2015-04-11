@@ -1,7 +1,7 @@
 0.3.2
 ==================
 
-* Fix, never expire keys
+* Fix to never expire keys
 
 0.3.1
 ==================
