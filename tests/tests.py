@@ -10,15 +10,15 @@ from django import forms
 from django.core.cache import get_cache
 from django.conf import settings
 
-from . import registry
-from . import forms as djconfig_forms
-from . import settings as djconfig_settings
-from .utils import prefixer
-from .utils import override_djconfig
-from .conf import Config, config
-from .forms import ConfigForm
-from .models import Config as ConfigModel
-from .middleware import DjConfigLocMemMiddleware
+from djconfig import registry
+from djconfig import forms as djconfig_forms
+from djconfig import settings as djconfig_settings
+from djconfig.utils import prefixer
+from djconfig.utils import override_djconfig
+from djconfig.conf import Config, config
+from djconfig.forms import ConfigForm
+from djconfig.models import Config as ConfigModel
+from djconfig.middleware import DjConfigLocMemMiddleware
 
 
 class FooForm(ConfigForm):
