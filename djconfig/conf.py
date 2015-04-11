@@ -26,12 +26,12 @@ class Config(object):
         return self._cache.get(prefixer(key))
 
     def _set(self, key, value):
-        self._cache.set(prefixer(key), value)
+        self._cache.set(prefixer(key), value, timeout=None)
         self._keys.add(key)
 
     def _set_many(self, items):
         self._cache.set_many({prefixer(key): value
-                              for key, value in items.items()})
+                              for key, value in items.items()}, timeout=None)
         self._keys.update(items.keys())
 
     def _reload(self):
