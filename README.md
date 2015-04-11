@@ -133,9 +133,9 @@ Supported backends:
 * `Redis` (requires [django-redis-cache](https://github.com/sebleier/django-redis-cache))
 * Any other in-memory cache.
 
->**Note**: When using `LocMemCache` you must add `djconfig.middleware.DjConfigLocMemMiddleware` to your *MIDDLEWARE_CLASSES*.
+> **Note**: When using `LocMemCache` you should add `djconfig.middleware.DjConfigLocMemMiddleware` to `MIDDLEWARE_CLASSES`.
 >
->This will make cross-process caching possible. Not really, but it will reload the cache on every request by quering the database.
+> This will make cross-process caching work by reloading the cache on every request, if it was updated.
 
 ## Supported form fields
 
