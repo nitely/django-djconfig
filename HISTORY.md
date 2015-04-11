@@ -1,6 +1,11 @@
 0.3.1
 ==================
 
+* Fix, never expire keys
+
+0.3.1
+==================
+
 * Include missing migrations in setup.py
 
 0.3.0

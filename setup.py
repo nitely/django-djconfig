@@ -11,7 +11,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-djconfig',
-    version='0.3.1',
+    version='0.3.2',
     description='DjConfig is a Django app for storing other apps configurations.',
     author='Esteban Castro Borsani',
     author_email='ecastroborsani@gmail.com',
