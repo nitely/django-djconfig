@@ -13,11 +13,12 @@ and stored in an in-memory cache for later access.
 
 ## Installing
 
-1. Add `djconfig` to `INSTALLED_APPS`
-2. Run `python manage.py migrate`
-3. [Set a cache backend](https://github.com/nitely/django-djconfig#backends)
-4. (Optional) Add `djconfig.middleware.DjConfigLocMemMiddleware` to `MIDDLEWARE_CLASSES` if you are using django `LocMemCache`
-5. (Optional) Add `djconfig.context_processors.config` to `TEMPLATE_CONTEXT_PROCESSORS` to access the `config` within your templates
+1. `pip install django-djconfig`
+2. Add `djconfig` to `INSTALLED_APPS`
+3. Run `python manage.py migrate`
+4. [Set a cache backend](https://github.com/nitely/django-djconfig#backends)
+5. (Optional) Add `djconfig.middleware.DjConfigLocMemMiddleware` to `MIDDLEWARE_CLASSES` if you are using django `LocMemCache`
+6. (Optional) Add `djconfig.context_processors.config` to `TEMPLATE_CONTEXT_PROCESSORS` to access the `config` within your templates
 
 ## Usage
 
@@ -144,7 +145,7 @@ Fields that return complex objects are not supported. Basically any object that 
 
 ## Testing
 
-Add `LOCATION` to your cache so you can call `cache.clear()` to clear all your caches but the DjConfig one.
+Add `LOCATION` to `CACHES` so you can call `cache.clear()` to clear all the caches but the DjConfig one.
 
 Usage:
 ```python
@@ -161,7 +162,7 @@ CACHES = {
 
 ## Testing helpers
 
-DjConfig comes with a helper similar to django's `@override_settings` you can use in tests.
+There is a helper similar to django's `@override_settings` that can be used in tests.
 
 Usage:
 ```python
