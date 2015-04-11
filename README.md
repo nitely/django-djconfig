@@ -158,6 +158,8 @@ CACHES = {
         'LOCATION': 'test-djconfig',
     },
 }
+
+DJC_BACKEND = 'djconfig'
 ```
 
 ## Testing helpers
