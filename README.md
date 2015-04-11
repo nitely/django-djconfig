@@ -1,31 +1,27 @@
 # DjConfig [![Build Status](https://travis-ci.org/nitely/django-djconfig.png)](https://travis-ci.org/nitely/django-djconfig) [![Coverage Status](https://coveralls.io/repos/nitely/django-djconfig/badge.png?branch=master)](https://coveralls.io/r/nitely/django-djconfig?branch=master)
 
-DjConfig is a Django app to store other apps configurations.
-
 ## How it works
 
-DjConfig let you provide all the configuration variables you need by using a regular form.
-
-Those variables are persisted in the database (one per row) and stored in the selected cache backend for later access.
+Set the config values using a regular form.
+Those values are persisted in the database (one per row)
+and stored in an in-memory cache for later access.
 
 ## Requirements
-
-DjConfig requires the following software to be installed:
 
 * Python 2.7, 3.3 or 3.4 (recommended)
 * Django 1.7, 1.8
 
-## Configuration
+## Installing
 
-1. Add `djconfig` to your *INSTALLED_APPS*
+1. Add `djconfig` to `INSTALLED_APPS`
 2. Run `python manage.py migrate`
 3. [Set a cache backend](https://github.com/nitely/django-djconfig#backends)
-4. (Optional) Add `djconfig.middleware.DjConfigLocMemMiddleware` to your *MIDDLEWARE_CLASSES* if you are using django `LocMemCache` and running multiple processes
-5. (Optional) Add `djconfig.context_processors.config` to your *TEMPLATE_CONTEXT_PROCESSORS* for accessing `config` within your templates
+4. (Optional) Add `djconfig.middleware.DjConfigLocMemMiddleware` to `MIDDLEWARE_CLASSES` if you are using django `LocMemCache`
+5. (Optional) Add `djconfig.context_processors.config` to `TEMPLATE_CONTEXT_PROCESSORS` to access the `config` within your templates
 
 ## Usage
 
-Setting your config variables:
+Creating the config form:
 
 ```python
 # forms.py
@@ -39,7 +35,7 @@ class AppConfigForm(ConfigForm):
     my_second_key = forms.IntegerField(initial=20)
 ```
 
-Registering your form:
+Registering the config form:
 
 Read the [django applications doc](https://docs.djangoproject.com/en/1.8/ref/applications/)
 
@@ -65,7 +61,7 @@ class MyAppConfig(AppConfig):
         djconfig.register(MyConfigForm)
 ```
 
-Accessing your config variables:
+Accessing the config:
 
 ```python
 from djconfig import config
@@ -75,7 +71,7 @@ if config.my_first_key:
     # ...
 ```
 
-Accessing your config variables within your templates:
+Accessing the config within templates:
 *Requires setting `djconfig.context_processors.config` or passing the `config` object to your RequestContext manually*
 
 ```python
@@ -88,7 +84,7 @@ Accessing your config variables within your templates:
 {% endif %}
 ```
 
-Dynamically setting your config variables:
+Editing the config values:
 
 ```python
 # views.py
@@ -112,7 +108,7 @@ def config_view(request):
 
 ## Backends
 
-DjConfig requires a Django cache backend to be installed.
+An *in-memory* cache is required.
 
 ```python
 # settings.py
@@ -126,13 +122,13 @@ CACHES = {
 }
 ```
 
-To use other backend than the default, add `DJC_BACKEND = 'other'` in your *settings.py* file.
+To use other backend than the default, add `DJC_BACKEND = 'my_backend'` in your *settings.py* file.
 
 Supported backends:
 * `LocMemCache`
 * `Memcached`
 * `Redis` (requires [django-redis-cache](https://github.com/sebleier/django-redis-cache))
-* Any other memory-based cache.
+* Any other in-memory cache.
 
 >**Note**: When using `LocMemCache` you must add `djconfig.middleware.DjConfigLocMemMiddleware` to your *MIDDLEWARE_CLASSES*.
 >
