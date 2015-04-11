@@ -72,7 +72,9 @@ if config.my_first_key:
 ```
 
 Accessing the config within templates:
-*Requires setting `djconfig.context_processors.config` or passing the `config` object to your RequestContext manually*
+
+> Requires setting `djconfig.context_processors.config` or
+> manually passing the `config` object to your RequestContext
 
 ```python
 # template.html
