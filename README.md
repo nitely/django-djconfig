@@ -15,10 +15,9 @@ and stored in an in-memory cache for later access.
 
 1. `pip install django-djconfig`
 2. Add `djconfig` to `INSTALLED_APPS`
-3. Run `python manage.py migrate`
-4. [Set a cache backend](https://github.com/nitely/django-djconfig#backends)
-5. (Optional) Add `djconfig.middleware.DjConfigLocMemMiddleware` to `MIDDLEWARE_CLASSES` if you are using django `LocMemCache`
-6. (Optional) Add `djconfig.context_processors.config` to `TEMPLATE_CONTEXT_PROCESSORS` to access the `config` within your templates
+3. Add `djconfig.middleware.DjConfigMiddleware` to `MIDDLEWARE_CLASSES`
+4. Add `djconfig.context_processors.config` to `TEMPLATE_CONTEXT_PROCESSORS`
+5. Run `python manage.py migrate`
 
 ## Usage
 
@@ -74,9 +73,6 @@ if config.my_first_key:
 
 Accessing the config within templates:
 
-> Requires setting `djconfig.context_processors.config` or
-> manually passing the `config` object to your RequestContext
-
 ```python
 # template.html
 
@@ -109,58 +105,15 @@ def config_view(request):
     return render(request, 'app/configuration.html', {'form': form, })
 ```
 
-## Backends
-
-An *in-memory* cache is required.
-
-```python
-# settings.py
-
-# ...
-
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-    }
-}
-```
-
-To use other backend than the default, add `DJC_BACKEND = 'my_backend'` in your *settings.py* file.
-
-Supported backends:
-* `LocMemCache`
-* `Memcached`
-* `Redis` (requires [django-redis-cache](https://github.com/sebleier/django-redis-cache))
-* Any other in-memory cache.
-
-> **Note**: When using `LocMemCache` you should add `djconfig.middleware.DjConfigLocMemMiddleware` to `MIDDLEWARE_CLASSES`.
->
-> This will make cross-process caching work by reloading the cache on every request, if it was updated.
-
 ## Supported form fields
 
-The following form fields were tested: `BooleanField`, `CharField`, `EmailField`, `FloatField`, `IntegerField`, `URLField`.
+The following form fields were tested: `BooleanField`, `CharField`,
+`EmailField`, `FloatField`, `IntegerField`, `URLField`.
 
-Fields that return complex objects are not supported. Basically any object that can be store in a data base is supported, except for DateField which is not supported at this time (sorry).
+Fields that return complex objects are not supported.
+Basically any object that can be store in a data base is supported,
+except for DateField which is not supported at this time (sorry).
 
-## Testing
-
-Add `LOCATION` to `CACHES` so you can call `cache.clear()` to clear all the caches but the DjConfig one.
-
-Usage:
-```python
-CACHES = {
-    'default': {
-        # ...
-    },
-    'djconfig': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'test-djconfig',
-    },
-}
-
-DJC_BACKEND = 'djconfig'
-```
 
 ## Testing helpers
 

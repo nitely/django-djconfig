@@ -4,8 +4,6 @@ from __future__ import unicode_literals
 
 from django.conf import settings as django_settings
 
-from .settings import BACKEND
-
 _registered_forms = set()
 
 
@@ -28,7 +26,7 @@ def register(form_class):
 
 
 def _check_backend():
-    if django_settings.CACHES[BACKEND]['BACKEND'].endswith(".LocMemCache") and \
-            "djconfig.middleware.DjConfigLocMemMiddleware" not in django_settings.MIDDLEWARE_CLASSES:
-        raise ValueError("LocMemCache requires DjConfigLocMemMiddleware "
+    if "djconfig.middleware.DjConfigLocMemMiddleware" not in django_settings.MIDDLEWARE_CLASSES and\
+                    "djconfig.middleware.DjConfigMiddleware" not in django_settings.MIDDLEWARE_CLASSES:
+        raise ValueError("djconfig.middleware.DjConfigMiddleware is required "
                          "but it was not found in MIDDLEWARE_CLASSES")
