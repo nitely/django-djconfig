@@ -3,12 +3,6 @@
 from __future__ import unicode_literals
 from functools import wraps
 
-from .settings import PREFIX
-
-
-def prefixer(key):
-    return "%s:%s" % (PREFIX, key)
-
 
 def override_djconfig(**new_cache_values):
     """

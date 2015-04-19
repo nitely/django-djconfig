@@ -2,37 +2,30 @@
 
 from __future__ import unicode_literals
 
-from django.core.cache import get_cache
-
 from . import registry
-from . import settings
 from . import models
-from .utils import prefixer
 
 
 class Config(object):
 
     def __init__(self):
-        self._cache = get_cache(settings.BACKEND)
+        self._cache = {}
         self._is_loaded = False
-        self._keys = set()
 
     def __getattr__(self, key):
         self._lazy_load()
 
-        if key not in self._keys:
+        try:
+            return self._cache[key]
+        except KeyError:
             raise AttributeError('Attribute "%s" not found in config.' % key)
 
-        return self._cache.get(prefixer(key))
-
     def _set(self, key, value):
-        self._cache.set(prefixer(key), value, timeout=None)
-        self._keys.add(key)
+        self._cache[key] = value
 
     def _set_many(self, items):
-        self._cache.set_many({prefixer(key): value
-                              for key, value in items.items()}, timeout=None)
-        self._keys.update(items.keys())
+        self._cache.update({key: value
+                            for key, value in items.items()})
 
     def _reload(self):
         """
@@ -41,8 +34,8 @@ class Config(object):
         Otherwise, the initial value from the field form is used.
         """
         cache_items = {}
-        data = dict(models.Config
-                    .objects.all()
+        data = dict(models.Config.objects
+                    .all()
                     .values_list('key', 'value'))
 
         for form_class in registry._registered_forms:
