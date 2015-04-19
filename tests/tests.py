@@ -3,8 +3,9 @@
 from __future__ import unicode_literals
 import datetime
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django import forms
+from django.conf import settings
 
 from djconfig import registry
 from djconfig import forms as djconfig_forms
@@ -47,6 +48,14 @@ class DjConfigTest(TestCase):
             """"""
 
         self.assertRaises(AssertionError, registry.register, BadForm)
+
+
+    @override_settings(MIDDLEWARE_CLASSES=settings.MIDDLEWARE_CLASSES[:-1])
+    def test_register_check_backend(self):
+        """
+        Raises valueError if middleware is missing
+        """
+        self.assertRaises(ValueError, registry.register, FooForm)
 
 
 class BarForm(ConfigForm):
