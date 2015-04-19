@@ -1,3 +1,10 @@
+0.4.0
+==================
+
+* No longer use django cache
+* Renamed `DjConfigLocMemMiddleware` to `DjConfigMiddleware`
+* `DjConfigMiddleware` is required
+
 0.3.2
 ==================
 

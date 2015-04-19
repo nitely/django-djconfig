@@ -15,7 +15,7 @@ and stored in an in-memory cache for later access.
 
 1. `pip install django-djconfig`
 2. Add `djconfig` to `INSTALLED_APPS`
-3. Add `djconfig.middleware.DjConfigLocMemMiddleware` to `MIDDLEWARE_CLASSES`
+3. Add `djconfig.middleware.DjConfigMiddleware` to `MIDDLEWARE_CLASSES`
 4. Add `djconfig.context_processors.config` to `TEMPLATE_CONTEXT_PROCESSORS`
 5. Run `python manage.py migrate`
 

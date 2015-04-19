@@ -12,7 +12,7 @@ from djconfig.utils import override_djconfig
 from djconfig.conf import Config, config
 from djconfig.forms import ConfigForm
 from djconfig.models import Config as ConfigModel
-from djconfig.middleware import DjConfigLocMemMiddleware
+from djconfig.middleware import DjConfigMiddleware, DjConfigLocMemMiddleware
 
 
 class FooForm(ConfigForm):
@@ -345,7 +345,7 @@ class DjConfigMiddlewareTest(TestCase):
         cache = config._cache
 
         # Should not reload since _updated_at does not exists (form was not saved)
-        middleware = DjConfigLocMemMiddleware()
+        middleware = DjConfigMiddleware()
         middleware.process_request(request=None)
         self.assertIsNone(cache.get('char'))
 
@@ -366,6 +366,12 @@ class DjConfigMiddlewareTest(TestCase):
         middleware.process_request(request=None)
         self.assertEqual(cache.get('char'), "bar")
         self.assertEqual(cache.get("_updated_at"), "222")
+
+    def test_config_middleware_old(self):
+        """
+        Regression test for the old LocMem Middleware
+        """
+        self.assertEqual(DjConfigLocMemMiddleware, DjConfigMiddleware)
 
 
 class DjConfigUtilsTest(TestCase):

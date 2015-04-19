@@ -5,10 +5,10 @@ from __future__ import unicode_literals
 from . import conf
 from . import models
 
-__all__ = ['DjConfigLocMemMiddleware', ]
+__all__ = ['DjConfigMiddleware', ]
 
 
-class DjConfigLocMemMiddleware(object):
+class DjConfigMiddleware(object):
     """
     Populates the cache using the database.
     """
@@ -25,3 +25,7 @@ class DjConfigLocMemMiddleware(object):
 
         if data.get('_updated_at') != conf.config._updated_at:
             conf.config._reload()
+
+
+# Backward compatibility
+DjConfigLocMemMiddleware = DjConfigMiddleware
