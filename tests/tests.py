@@ -49,7 +49,6 @@ class DjConfigTest(TestCase):
 
         self.assertRaises(AssertionError, registry.register, BadForm)
 
-
     @override_settings(MIDDLEWARE_CLASSES=settings.MIDDLEWARE_CLASSES[:-1])
     def test_register_check_backend(self):
         """
@@ -91,8 +90,9 @@ class DjConfigFormsTest(TestCase):
         config._set("char", "foo2")
         config._is_loaded = True
 
-        form = BarForm(initial={'char': 'bar', })
-        self.assertEqual(form.initial['char'], 'bar')
+        form = BarForm(initial={'char': 'bar', 'email': 'new_initial@mail.com'})
+        self.assertEqual(form.initial['char'], 'foo2')
+        self.assertEqual(form.initial['email'], 'new_initial@mail.com')
 
     def test_config_form(self):
         """

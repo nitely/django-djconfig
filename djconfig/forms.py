@@ -17,11 +17,11 @@ class ConfigForm(forms.Form):
         super(ConfigForm, self).__init__(*args, **kwargs)
 
         if conf.config._is_loaded:
-            initial_config = {field_name: getattr(conf.config, field_name)
-                              for field_name in self.fields}
-            initial_config.update(self.initial)
-            self.initial = initial_config
-
+            self.initial.update({
+                field_name: getattr(conf.config, field_name)
+                for field_name in self.fields
+                if hasattr(conf.config, field_name)
+            })
 
     def save(self):
         data = self.cleaned_data
