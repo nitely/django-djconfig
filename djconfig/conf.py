@@ -2,8 +2,13 @@
 
 from __future__ import unicode_literals
 
+from django.apps import apps
+from django.conf import settings
+
 from . import registry
-from . import models
+from .settings import DJCONFIG_CONFIG_MODEL
+
+CONFIG_MODEL = getattr(settings, 'DJCONFIG_CONFIG_MODEL', DJCONFIG_CONFIG_MODEL)
 
 
 class Config(object):
@@ -24,8 +29,10 @@ class Config(object):
         self._cache[key] = value
 
     def _set_many(self, items):
-        self._cache.update({key: value
-                            for key, value in items.items()})
+        self._cache.update({
+            key: value
+            for key, value in items.items()
+        })
 
     def _reload(self):
         """
@@ -33,8 +40,9 @@ class Config(object):
         If a field name is found in the db, it will load it from there.
         Otherwise, the initial value from the field form is used.
         """
+        ConfigModel = apps.get_model(CONFIG_MODEL)
         cache_items = {}
-        data = dict(models.Config.objects
+        data = dict(ConfigModel.objects
                     .all()
                     .values_list('key', 'value'))
 
@@ -42,13 +50,17 @@ class Config(object):
             form = form_class(data=data)
             form.is_valid()
 
-            initial = {field_name: field.initial
-                       for field_name, field in form.fields.items()}
+            initial = {
+                field_name: field.initial
+                for field_name, field in form.fields.items()
+            }
             cache_items.update(initial)
 
-            cleaned_data = {field_name: value
-                            for field_name, value in form.cleaned_data.items()
-                            if field_name in data}
+            cleaned_data = {
+                field_name: value
+                for field_name, value in form.cleaned_data.items()
+                if field_name in data
+            }
             cache_items.update(cleaned_data)
 
         cache_items['_updated_at'] = data.get('_updated_at')

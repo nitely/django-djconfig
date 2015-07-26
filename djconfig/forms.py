@@ -4,9 +4,13 @@ from __future__ import unicode_literals
 
 from django import forms
 from django.utils import timezone
+from django.apps import apps
+from django.conf import settings
 
 from . import conf
-from . import models
+from .settings import DJCONFIG_CONFIG_MODEL
+
+CONFIG_MODEL = getattr(settings, 'DJCONFIG_CONFIG_MODEL', DJCONFIG_CONFIG_MODEL)
 
 
 class ConfigForm(forms.Form):
@@ -26,14 +30,15 @@ class ConfigForm(forms.Form):
     def save(self):
         data = self.cleaned_data
         data['_updated_at'] = timezone.now()
+        ConfigModel = apps.get_model(CONFIG_MODEL)
 
         for field_name, value in data.items():
             # TODO: use update_or_create
-            count = models.Config.objects\
+            count = ConfigModel.objects\
                 .filter(key=field_name)\
                 .update(value=value)
 
             if not count:
-                models.Config.objects.create(key=field_name, value=value)
+                ConfigModel.objects.create(key=field_name, value=value)
 
         conf.config._reload()
