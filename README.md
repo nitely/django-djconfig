@@ -1,5 +1,5 @@
 # DjConfig [![Build Status](https://travis-ci.org/nitely/django-djconfig.png)](https://travis-ci.org/nitely/django-djconfig) [![Coverage Status](https://coveralls.io/repos/nitely/django-djconfig/badge.png?branch=master)](https://coveralls.io/r/nitely/django-djconfig?branch=master)
-https://img.shields.io/coveralls/nitely/django-djconfig/master.svg?style=flat-square
+
 
 ## How it works
 
