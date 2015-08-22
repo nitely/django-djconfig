@@ -18,9 +18,10 @@ class ConfigForm(forms.Form):
     Base class for every registered config form.
     """
     def __init__(self, *args, **kwargs):
+        pre_load_config = kwargs.pop('pre_load_config', True)
         super(ConfigForm, self).__init__(*args, **kwargs)
 
-        if conf.config._is_loaded:
+        if pre_load_config:  # Do not pre-load when reloading the config, to avoid infinite recursion
             self.initial.update({
                 field_name: getattr(conf.config, field_name)
                 for field_name in self.fields

@@ -1,4 +1,5 @@
 # DjConfig [![Build Status](https://travis-ci.org/nitely/django-djconfig.png)](https://travis-ci.org/nitely/django-djconfig) [![Coverage Status](https://coveralls.io/repos/nitely/django-djconfig/badge.png?branch=master)](https://coveralls.io/r/nitely/django-djconfig?branch=master)
+https://img.shields.io/coveralls/nitely/django-djconfig/master.svg?style=flat-square
 
 ## How it works
 
@@ -23,6 +24,9 @@ and stored in an in-memory cache for later access.
 
 Creating the config form:
 
+> *Note:*
+> Form's field names must be unique across forms, so you should prefix them with the name of your app.
+
 ```python
 # forms.py
 
@@ -31,8 +35,8 @@ from djconfig.forms import ConfigForm
 
 class AppConfigForm(ConfigForm):
 
-    my_first_key = forms.BooleanField(initial=True, required=False)
-    my_second_key = forms.IntegerField(initial=20)
+    myapp_first_key = forms.BooleanField(initial=True, required=False)
+    myapp_second_key = forms.IntegerField(initial=20)
 ```
 
 Registering the config form:
@@ -67,7 +71,7 @@ Accessing the config:
 from djconfig import config
 
 
-if config.my_first_key:
+if config.myapp_first_key:
     # ...
 ```
 
@@ -78,7 +82,7 @@ Accessing the config within templates:
 
 # ...
 
-{% if config.my_first_key %}
+{% if config.myapp_first_key %}
     # ...
 {% endif %}
 ```
@@ -123,14 +127,11 @@ Usage:
 ```python
 from djconfig.utils import override_djconfig
 
-@override_djconfig(my_first_key="foo", my_second_key="bar")
+@override_djconfig(myapp_first_key="foo", myapp_second_key="bar")
 def test_something(self):
     # ...
 ```
 
-## Limitations
-
-* Although you can register several forms, field names must be unique across forms.
 
 ## Changelog
 

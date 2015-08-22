@@ -68,17 +68,22 @@ class DjConfigFormsTest(TestCase):
         config._reset()
         registry._registered_forms.clear()
 
-    def test_config_form_populate_if_loaded(self):
+    def test_config_form_initial(self):
         """
-        config form, populate initial data only if the config is loaded
+        config form, populate initial data
         """
         registry.register(BarForm)
-        config._set("char", "foo2")
-
         form = BarForm()
-        self.assertTrue('char' not in form.initial)
+        self.assertEqual(form.initial['char'], 'foo')
 
-        config._is_loaded = True
+    def test_config_form_auto_populate(self):
+        """
+        config form, populate initial data,
+        load the config if it's not loaded
+        """
+        ConfigModel.objects.create(key="char", value="foo2")
+        registry.register(BarForm)
+
         form = BarForm()
         self.assertEqual(form.initial['char'], 'foo2')
 

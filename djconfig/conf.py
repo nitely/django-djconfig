@@ -47,7 +47,7 @@ class Config(object):
                     .values_list('key', 'value'))
 
         for form_class in registry._registered_forms:
-            form = form_class(data=data)
+            form = form_class(data=data, pre_load_config=False)
             form.is_valid()
 
             initial = {

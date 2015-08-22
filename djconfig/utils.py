@@ -13,7 +13,10 @@ def override_djconfig(**new_cache_values):
     def decorator(func):
         @wraps(func)
         def func_wrapper(*args, **kw):
-            old_cache_values = {key: getattr(conf.config, key) for key in new_cache_values}
+            old_cache_values = {
+                key: getattr(conf.config, key)
+                for key in new_cache_values
+            }
 
             conf.config._set_many(new_cache_values)
 
