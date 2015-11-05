@@ -41,10 +41,12 @@ class Config(object):
         Otherwise, the initial value from the field form is used.
         """
         ConfigModel = apps.get_model(CONFIG_MODEL)
-        cache_items = {}
-        data = dict(ConfigModel.objects
-                    .all()
-                    .values_list('key', 'value'))
+        cache = {}
+        data = dict(
+            ConfigModel.objects
+                .all()
+                .values_list('key', 'value')
+        )
 
         for form_class in registry._registered_forms:
             form = form_class(data=data, pre_load_config=False)
@@ -54,20 +56,21 @@ class Config(object):
                 field_name: field.initial
                 for field_name, field in form.fields.items()
             }
-            cache_items.update(initial)
+            cache.update(initial)
 
             cleaned_data = {
                 field_name: value
                 for field_name, value in form.cleaned_data.items()
                 if field_name in data
             }
-            cache_items.update(cleaned_data)
+            cache.update(cleaned_data)
 
-        cache_items['_updated_at'] = data.get('_updated_at')
-        self._set_many(cache_items)
+        cache['_updated_at'] = data.get('_updated_at')
+        self._cache = cache
 
     def _reset(self):
         self._is_loaded = False
+        self._cache = {}
 
     def _lazy_load(self):
         if self._is_loaded:

@@ -187,6 +187,7 @@ class DjConfigConfTest(TestCase):
         """
         config set adds the item
         """
+        config._is_loaded = True
         config._set('foo', 'bar')
         self.assertTrue('foo' in config._cache)
         self.assertEqual(config.foo, 'bar')
@@ -195,6 +196,7 @@ class DjConfigConfTest(TestCase):
         """
         config set adds the key
         """
+        config._is_loaded = True
         config._set_many({'foo': 'bar', })
         self.assertTrue('foo' in config._cache)
         self.assertEqual(config.foo, 'bar')
@@ -320,7 +322,6 @@ class DjConfigConfTest(TestCase):
         Load the config the first time you access an attribute
         """
         registry.register(FooForm)
-        self.assertTrue('char' in config._cache)
         self.assertEqual(config.char, "foo")
 
     def test_config_reset(self):
@@ -356,30 +357,29 @@ class DjConfigMiddlewareTest(TestCase):
         registry.register(BarForm)
         config._lazy_load()
         config._set('char', None)
-        cache = config._cache
 
         # Should not reload since _updated_at does not exists (form was not saved)
         middleware = DjConfigMiddleware()
         middleware.process_request(request=None)
-        self.assertIsNone(cache.get('char'))
+        self.assertIsNone(config._cache.get('char'))
 
         # Changing _updated_at should make it reload
         ConfigModel.objects.create(key="_updated_at", value="111")
         middleware.process_request(request=None)
-        self.assertEqual(cache.get('char'), "foo")
-        self.assertEqual(cache.get("_updated_at"), "111")
+        self.assertEqual(config._cache.get('char'), "foo")
+        self.assertEqual(config._cache.get("_updated_at"), "111")
 
         # It does not update again, since _updated_at has not changed
         ConfigModel.objects.filter(key="char").update(value="bar")
         middleware.process_request(request=None)
-        self.assertNotEqual(cache.get('char'), "bar")
-        self.assertEqual(cache.get("_updated_at"), "111")
+        self.assertNotEqual(config._cache.get('char'), "bar")
+        self.assertEqual(config._cache.get("_updated_at"), "111")
 
         # Changing _updated_at should make it reload
         ConfigModel.objects.filter(key="_updated_at").update(value="222")
         middleware.process_request(request=None)
-        self.assertEqual(cache.get('char'), "bar")
-        self.assertEqual(cache.get("_updated_at"), "222")
+        self.assertEqual(config._cache.get('char'), "bar")
+        self.assertEqual(config._cache.get("_updated_at"), "222")
 
     def test_config_middleware_old(self):
         """
@@ -402,6 +402,7 @@ class DjConfigUtilsTest(TestCase):
         def my_test(my_var):
             return my_var, config.foo, config.foo2
 
+        config._is_loaded = True
         config._set('foo', 'org')
         config._set('foo2', 'org2')
 
@@ -417,6 +418,7 @@ class DjConfigUtilsTest(TestCase):
         def my_test():
             raise AssertionError
 
+        config._is_loaded = True
         config._set('foo', 'org')
 
         try:
