@@ -1,3 +1,10 @@
+0.5.0
+==================
+
+* Remove config lazy loading
+* Adds `conf.reload_maybe()` to load the config
+* Adds `app.py` config
+
 0.4.0
 ==================
 
