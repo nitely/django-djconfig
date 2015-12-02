@@ -1,6 +1,8 @@
 0.5.0
 ==================
 
+* Drops Django 1.7 support
+* Adds Python 3.5 support
 * Remove config lazy loading
 * Adds `conf.reload_maybe()` to load the config
 * Adds `app.py` config
