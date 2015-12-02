@@ -11,7 +11,19 @@ from . import conf
 
 class ConfigForm(forms.Form):
     """
-    Base class for every registered config form.
+    Base class for every registered config form.\
+    It behaves like a regular form.
+
+    Inherits from :py:class:`django.forms.Form`.\
+    The :py:attr:`initial` attr will be updated with the\
+    config values if any.
+
+    All form fields implementing this, should have a unique\
+    name to avoid clashing with other registered forms,\
+    prefixing them with the app name is a good practice.
+
+    :param \*args: Positional parameters passed to parent class
+    :param \*\*kwargs: Keyword parameters passed to parent class
     """
     def __init__(self, *args, **kwargs):
         super(ConfigForm, self).__init__(*args, **kwargs)
@@ -23,6 +35,12 @@ class ConfigForm(forms.Form):
         })
 
     def save(self):
+        """
+        Save the config with the cleaned data,\
+        update the last modified date so\
+        the config is reloaded on other process/nodes.\
+        Reload the config so it can be called right away.
+        """
         data = self.cleaned_data
         data['_updated_at'] = timezone.now()
         ConfigModel = apps.get_model('djconfig.Config')
