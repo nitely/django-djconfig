@@ -6,18 +6,42 @@ from django.apps import apps
 
 
 class Config(object):
+    """
+    Contain registry of config forms and\
+    cache of key-value matching the forms field-value.
 
+    All methods must be private to avoid clashing\
+    with the dynamic attributes.
+
+    This should be usually accessed through :py:data:`config`
+    """
     def __init__(self):
         self._registry = set()
         self._cache = {}
 
     def __getattr__(self, key):
+        """
+        Map cache data to config attributes
+
+        :return: The cache value for the accessed key/attribute
+        """
         try:
             return self._cache[key]
         except KeyError:
             raise AttributeError('Attribute "%s" not found in config.' % key)
 
     def _register(self, form_class, check_middleware=True):
+        """
+        * Public
+
+        Register a config form into the registry
+
+        :param object form_class:\
+        The form class to register, instance of :py:class:`djconfig.forms.ConfigForm`
+        :param bool check_middleware: Check if\
+        :py:class:`djconfig.middleware.DjConfigMiddleware`\
+        is registered into ``settings.MIDDLEWARE_CLASSES``. Default True
+        """
         from . import forms  # avoids circular dependency
 
         assert issubclass(form_class, forms.ConfigForm), \
@@ -30,6 +54,12 @@ class Config(object):
 
     @staticmethod
     def _check_backend():
+        """
+        * Private
+
+        Check if :py:class:`djconfig.middleware.DjConfigMiddleware`\
+        is registered into ``settings.MIDDLEWARE_CLASSES``
+        """
         from django.conf import settings
 
         middlewares = set(settings.MIDDLEWARE_CLASSES)
@@ -48,9 +78,11 @@ class Config(object):
 
     def _reload(self):
         """
-        Gets every registered form's field value.
-        If a field name is found in the db, it will load it from there.
-        Otherwise, the initial value from the field form is used.
+        * Private
+
+        Gets every registered form's field value.\
+        If a field name is found in the db, it will load it from there.\
+        Otherwise, the initial value from the field form is used
         """
         ConfigModel = apps.get_model('djconfig.Config')
         cache = {}
@@ -82,6 +114,8 @@ class Config(object):
 
     def _reload_maybe(self):
         """
+        * Public
+
         Reload the config if the config\
         model has been updated. This is called\
         once on every request by the middleware.\
