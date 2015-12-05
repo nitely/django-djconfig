@@ -6,6 +6,14 @@
 Welcome to django-djconfig's documentation!
 ===========================================
 
+User’s Guide
+------------
+
+.. toctree::
+   :maxdepth: 2
+
+   installation
+
 API Reference
 -------------
 
