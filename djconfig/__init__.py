@@ -11,5 +11,5 @@ config = conf.config
 register = conf.register
 reload_maybe = conf.reload_maybe
 
-__version__ = "0.5.0-pre"
+__version__ = "0.5.0"
 __all__ = ['config', 'register', 'reload_maybe']
