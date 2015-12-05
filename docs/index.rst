@@ -13,6 +13,8 @@ User’s Guide
    :maxdepth: 2
 
    installation
+   usage
+   fields
 
 API Reference
 -------------
@@ -24,3 +26,14 @@ method, this part of the documentation is for you.
    :maxdepth: 2
 
    api
+
+Additional Notes
+----------------
+
+Design notes, legal information and changelog are here for the interested.
+
+.. toctree::
+   :maxdepth: 2
+
+   changelog
+   license
