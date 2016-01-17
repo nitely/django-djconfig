@@ -42,6 +42,11 @@ class ConfigForm(forms.Form):
         the config is reloaded on other process/nodes.\
         Reload the config so it can be called right away.
         """
+        assert self.__class__ in conf.config._registry,\
+            '%(class_name)s is not registered' % {
+                'class_name': self.__class__.__name__
+            }
+
         data = self.cleaned_data
         data['_updated_at'] = timezone.now()
         ConfigModel = apps.get_model('djconfig.Config')

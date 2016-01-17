@@ -120,6 +120,7 @@ class DjConfigFormsTest(TestCase):
         """
         config form
         """
+        djconfig.register(BarForm)
         form = BarForm(data={"char": "foo2", })
         self.assertTrue(form.is_valid())
         form.save()
@@ -127,11 +128,21 @@ class DjConfigFormsTest(TestCase):
         qs = ConfigModel.objects.get(key="char")
         self.assertEqual(qs.value, "foo2")
 
+    def test_config_save_unregistered_form(self):
+        """
+        Should raise an exception if form is not registered
+        """
+        form = BarForm(data={"char": "foo2", })
+        self.assertTrue(form.is_valid())
+        self.assertRaises(AssertionError, form.save)
+
     def test_config_form_model_choice(self):
         """
         Saves ModelChoiceField
         """
         model_choice = ChoiceModel.objects.create(name='foo')
+
+        djconfig.register(ModelChoiceForm)
         form = ModelChoiceForm(data={"model_choice": str(model_choice.pk), })
         self.assertTrue(form.is_valid())
         form.save()
@@ -143,6 +154,7 @@ class DjConfigFormsTest(TestCase):
         """
         Saves ModelChoiceField
         """
+        djconfig.register(ModelChoicePKForm)
         model_choice = ChoiceModel.objects.create(name='foo')
         form = ModelChoicePKForm(data={"model_choice": str(model_choice.pk), })
         self.assertTrue(form.is_valid())
@@ -157,6 +169,7 @@ class DjConfigFormsTest(TestCase):
         """
         ConfigModel.objects.create(key="char", value="bar")
 
+        djconfig.register(BarForm)
         form = BarForm(data={"char": "foo2", })
         self.assertTrue(form.is_valid())
         form.save()
@@ -189,6 +202,7 @@ class DjConfigFormsTest(TestCase):
 
         orig_djconfig_forms_timezone, djconfig_forms.timezone = djconfig_forms.timezone, TZMock
         try:
+            djconfig.register(BarForm)
             form = BarForm(data={"char": "foo2", })
             self.assertTrue(form.is_valid())
             form.save()
