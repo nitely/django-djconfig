@@ -3,7 +3,15 @@
 from __future__ import unicode_literals
 from functools import wraps
 
+from django.db import models
+
 from . import conf
+
+
+__all__ = [
+    'override_djconfig',
+    'serialize'
+]
 
 
 def override_djconfig(**new_cache_values):
@@ -37,3 +45,19 @@ def override_djconfig(**new_cache_values):
         return func_wrapper
 
     return decorator
+
+
+def serialize(value):
+    """
+    Form values serialization
+
+    :param object value: A value to be serialized\
+    for saving it into the database and later\
+    loading it into the form as initial value
+    """
+    # todo: add DateField
+
+    if isinstance(value, models.Model):
+        return value.pk
+
+    return value

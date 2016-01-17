@@ -7,6 +7,7 @@ SECRET_KEY = 'secret'
 INSTALLED_APPS = (
     # ...
     'djconfig',
+    'tests'
 )
 
 MIDDLEWARE_CLASSES = (

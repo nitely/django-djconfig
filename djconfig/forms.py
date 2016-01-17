@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.apps import apps
 
 from . import conf
+from . import utils
 
 
 class ConfigForm(forms.Form):
@@ -46,6 +47,8 @@ class ConfigForm(forms.Form):
         ConfigModel = apps.get_model('djconfig.Config')
 
         for field_name, value in data.items():
+            value = utils.serialize(value)
+
             # TODO: use update_or_create
             count = ConfigModel.objects\
                 .filter(key=field_name)\

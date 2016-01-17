@@ -14,6 +14,8 @@ from djconfig.conf import Config, config
 from djconfig.forms import ConfigForm
 from djconfig.models import Config as ConfigModel
 from djconfig.middleware import DjConfigMiddleware, DjConfigLocMemMiddleware
+from djconfig import utils
+from .models import ChoiceModel
 
 
 class FooForm(ConfigForm):
@@ -25,7 +27,8 @@ class FooForm(ConfigForm):
     float_number = forms.FloatField(initial=1.23)
     integer = forms.IntegerField(initial=123)
     url = forms.URLField(initial="foo.com/")
-    choices = forms.ChoiceField(initial=None, choices=[(1, 'label_a'), (2, 'label_b')])
+    choices = forms.ChoiceField(initial=None, choices=[('1', 'label_a'), ('2', 'label_b')])
+    model_choices = forms.ModelChoiceField(initial=None, queryset=ChoiceModel.objects.all())
 
 
 class DjConfigTest(TestCase):
@@ -60,6 +63,19 @@ class DjConfigTest(TestCase):
 class BarForm(ConfigForm):
 
     char = forms.CharField(initial="foo")
+
+
+class ModelChoiceForm(ConfigForm):
+
+    model_choice = forms.ModelChoiceField(initial=None, queryset=ChoiceModel.objects.all())
+
+
+class ModelChoicePKForm(ConfigForm):
+
+    model_choice = forms.ModelChoiceField(initial=None, queryset=ChoiceModel.objects.all())
+
+    def clean_model_choice(self):
+        return self.cleaned_data['model_choice'].pk
 
 
 class DjConfigFormsTest(TestCase):
@@ -110,6 +126,30 @@ class DjConfigFormsTest(TestCase):
 
         qs = ConfigModel.objects.get(key="char")
         self.assertEqual(qs.value, "foo2")
+
+    def test_config_form_model_choice(self):
+        """
+        Saves ModelChoiceField
+        """
+        model_choice = ChoiceModel.objects.create(name='foo')
+        form = ModelChoiceForm(data={"model_choice": str(model_choice.pk), })
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        qs = ConfigModel.objects.get(key="model_choice")
+        self.assertEqual(qs.value, str(model_choice.pk))
+
+    def test_config_form_model_choice_pk(self):
+        """
+        Saves ModelChoiceField
+        """
+        model_choice = ChoiceModel.objects.create(name='foo')
+        form = ModelChoicePKForm(data={"model_choice": str(model_choice.pk), })
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        qs = ConfigModel.objects.get(key="model_choice")
+        self.assertEqual(qs.value, str(model_choice.pk))
 
     def test_config_form_update(self):
         """
@@ -202,7 +242,8 @@ class DjConfigConfTest(TestCase):
         """
         djconfig.register(FooForm)
         djconfig.reload_maybe()
-        keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number', 'integer', 'url', 'choices']
+        keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number',
+                'integer', 'url', 'choices', 'model_choices']
         values = {k: getattr(config, k) for k in keys}
         self.assertDictEqual(
             values,
@@ -214,7 +255,8 @@ class DjConfigConfTest(TestCase):
                 'float_number': 1.23,
                 'integer': 123,
                 'url': "foo.com/",
-                'choices': None
+                'choices': None,
+                'model_choices': None
             }
         )
 
@@ -222,6 +264,7 @@ class DjConfigConfTest(TestCase):
         """
         Load configuration into the cache
         """
+        model_choice = ChoiceModel.objects.create(name='A')
         data = [
             ConfigModel(key='boolean', value=False),
             ConfigModel(key='boolean_false', value=True),
@@ -230,13 +273,15 @@ class DjConfigConfTest(TestCase):
             ConfigModel(key='email', value="foo2@bar.com"),
             ConfigModel(key='integer', value=321),
             ConfigModel(key='url', value="foo2.com/"),
-            ConfigModel(key='choices', value=None)
+            ConfigModel(key='choices', value='1'),
+            ConfigModel(key='model_choices', value=model_choice.pk)
         ]
         ConfigModel.objects.bulk_create(data)
 
         djconfig.register(FooForm)
         djconfig.reload_maybe()
-        keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number', 'integer', 'url', 'choices']
+        keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number',
+                'integer', 'url', 'choices', 'model_choices']
         values = {k: getattr(config, k) for k in keys}
         self.assertDictEqual(
             values,
@@ -248,7 +293,8 @@ class DjConfigConfTest(TestCase):
                 'email': "foo2@bar.com",
                 'integer': 321,
                 'url': "http://foo2.com/",
-                'choices': None
+                'choices': '1',
+                'model_choices': model_choice
             }
         )
 
@@ -393,3 +439,10 @@ class DjConfigUtilsTest(TestCase):
             pass
 
         self.assertEqual(config.foo, "org")
+
+    def test_serialize(self):
+        """
+        Serializes complex objects
+        """
+        model_choice = ChoiceModel.objects.create(name='foo')
+        self.assertEqual(utils.serialize(model_choice), model_choice.pk)
