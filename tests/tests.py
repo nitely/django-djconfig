@@ -25,6 +25,7 @@ class FooForm(ConfigForm):
     float_number = forms.FloatField(initial=1.23)
     integer = forms.IntegerField(initial=123)
     url = forms.URLField(initial="foo.com/")
+    choices = forms.ChoiceField(initial=None, choices=[(1, 'label_a'), (2, 'label_b')])
 
 
 class DjConfigTest(TestCase):
@@ -201,7 +202,7 @@ class DjConfigConfTest(TestCase):
         """
         djconfig.register(FooForm)
         djconfig.reload_maybe()
-        keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number', 'integer', 'url']
+        keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number', 'integer', 'url', 'choices']
         values = {k: getattr(config, k) for k in keys}
         self.assertDictEqual(
             values,
@@ -212,7 +213,8 @@ class DjConfigConfTest(TestCase):
                 'email': "foo@bar.com",
                 'float_number': 1.23,
                 'integer': 123,
-                'url': "foo.com/"
+                'url': "foo.com/",
+                'choices': None
             }
         )
 
@@ -227,13 +229,14 @@ class DjConfigConfTest(TestCase):
             ConfigModel(key='char', value="foo2"),
             ConfigModel(key='email', value="foo2@bar.com"),
             ConfigModel(key='integer', value=321),
-            ConfigModel(key='url', value="foo2.com/")
+            ConfigModel(key='url', value="foo2.com/"),
+            ConfigModel(key='choices', value=None)
         ]
         ConfigModel.objects.bulk_create(data)
 
         djconfig.register(FooForm)
         djconfig.reload_maybe()
-        keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number', 'integer', 'url']
+        keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number', 'integer', 'url', 'choices']
         values = {k: getattr(config, k) for k in keys}
         self.assertDictEqual(
             values,
@@ -244,7 +247,8 @@ class DjConfigConfTest(TestCase):
                 'char': "foo2",
                 'email': "foo2@bar.com",
                 'integer': 321,
-                'url': "http://foo2.com/"
+                'url': "http://foo2.com/",
+                'choices': None
             }
         )
 
