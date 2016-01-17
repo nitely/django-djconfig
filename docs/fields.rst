@@ -13,7 +13,8 @@ The following form fields were tested:
 * ``EmailField``
 * ``FloatField``
 * ``IntegerField``
-* ``URLField``.
+* ``URLField``
+* ``ChoiceField``
 
 Fields that return complex objects are not supported.
 Basically any object that can be store in a data base is supported,
