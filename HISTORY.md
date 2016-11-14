@@ -1,7 +1,13 @@
+0.5.1
+==================
+
+* Adds Django 1.10 support
+
 0.5.0
 ==================
 
 * Drops Django 1.7 support
+* Adds Django 1.9 support
 * Adds Python 3.5 support
 * Remove config lazy loading
 * Adds `conf.reload_maybe()` to load the config
