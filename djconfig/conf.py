@@ -62,7 +62,12 @@ class Config(object):
         """
         from django.conf import settings
 
-        middlewares = set(settings.MIDDLEWARE_CLASSES)
+        # Django 1.10 does not allow
+        # both setting to be set
+        middlewares = set(
+            getattr(settings, 'MIDDLEWARE', None) or
+            getattr(settings, 'MIDDLEWARE_CLASSES', None) or
+            [])
 
         # Deprecated alias
         if "djconfig.middleware.DjConfigLocMemMiddleware" in middlewares:
@@ -72,8 +77,9 @@ class Config(object):
             return
 
         raise ValueError(
-            "djconfig.middleware.DjConfigMiddleware is required "
-            "but it was not found in MIDDLEWARE_CLASSES"
+            "djconfig.middleware.DjConfigMiddleware "
+            "is required but it was not found in "
+            "MIDDLEWARE_CLASSES nor in MIDDLEWARE"
         )
 
     def _reload(self):

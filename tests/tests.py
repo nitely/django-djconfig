@@ -52,12 +52,23 @@ class DjConfigTest(TestCase):
 
         self.assertRaises(AssertionError, djconfig.register, BadForm)
 
-    @override_settings(MIDDLEWARE_CLASSES=settings.MIDDLEWARE_CLASSES[:-1])
-    def test_register_check_backend(self):
+    def test_config_check_backend_new_middleware(self):
         """
-        Raises valueError if middleware is missing
+        Should try both MIDDLEWARE and MIDDLEWARE_CLASS
         """
-        self.assertRaises(ValueError, djconfig.register, FooForm)
+        mids = settings.MIDDLEWARE_CLASSES
+
+        with override_settings(MIDDLEWARE_CLASSES=mids[:-1], MIDDLEWARE=[]):
+            self.assertRaises(ValueError, djconfig.register, FooForm)
+
+        with override_settings(MIDDLEWARE_CLASSES=[], MIDDLEWARE=mids[:-1]):
+            self.assertRaises(ValueError, djconfig.register, FooForm)
+
+        with override_settings(MIDDLEWARE_CLASSES=mids, MIDDLEWARE=[]):
+            self.assertIsNone(djconfig.register(FooForm))
+
+        with override_settings(MIDDLEWARE_CLASSES=[], MIDDLEWARE=mids):
+            self.assertIsNone(djconfig.register(FooForm))
 
 
 class BarForm(ConfigForm):
