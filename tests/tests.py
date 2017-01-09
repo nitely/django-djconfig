@@ -2,10 +2,12 @@
 
 from __future__ import unicode_literals
 import datetime
+from unittest import skipIf
 
 from django.test import TestCase, override_settings
 from django import forms
 from django.conf import settings
+from django import get_version
 
 import djconfig
 from djconfig import forms as djconfig_forms
@@ -426,6 +428,17 @@ class DjConfigMiddlewareTest(TestCase):
         Regression test for the old LocMem Middleware
         """
         self.assertEqual(DjConfigLocMemMiddleware, DjConfigMiddleware)
+
+    @skipIf(get_version().startswith(('1.8.', '1.9.')), 'Django>=1.10 is required')
+    def test_config_middleware_new_style(self):
+        """
+        Should behave like a middleware factory
+        """
+        def request_handler(req):
+            return req
+
+        mid = DjConfigMiddleware(request_handler)
+        self.assertEqual(mid('foo'), 'foo')
 
 
 class DjConfigUtilsTest(TestCase):
