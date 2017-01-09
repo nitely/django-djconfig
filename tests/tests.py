@@ -2,10 +2,12 @@
 
 from __future__ import unicode_literals
 import datetime
+from unittest import skipIf
 
 from django.test import TestCase, override_settings
 from django import forms
 from django.conf import settings
+from django import get_version
 
 import djconfig
 from djconfig import forms as djconfig_forms
@@ -52,12 +54,23 @@ class DjConfigTest(TestCase):
 
         self.assertRaises(AssertionError, djconfig.register, BadForm)
 
-    @override_settings(MIDDLEWARE_CLASSES=settings.MIDDLEWARE_CLASSES[:-1])
-    def test_register_check_backend(self):
+    def test_config_check_backend_new_middleware(self):
         """
-        Raises valueError if middleware is missing
+        Should try both MIDDLEWARE and MIDDLEWARE_CLASS
         """
-        self.assertRaises(ValueError, djconfig.register, FooForm)
+        mids = settings.MIDDLEWARE_CLASSES
+
+        with override_settings(MIDDLEWARE_CLASSES=mids[:-1], MIDDLEWARE=[]):
+            self.assertRaises(ValueError, djconfig.register, FooForm)
+
+        with override_settings(MIDDLEWARE_CLASSES=[], MIDDLEWARE=mids[:-1]):
+            self.assertRaises(ValueError, djconfig.register, FooForm)
+
+        with override_settings(MIDDLEWARE_CLASSES=mids, MIDDLEWARE=[]):
+            self.assertIsNone(djconfig.register(FooForm))
+
+        with override_settings(MIDDLEWARE_CLASSES=[], MIDDLEWARE=mids):
+            self.assertIsNone(djconfig.register(FooForm))
 
 
 class BarForm(ConfigForm):
@@ -415,6 +428,17 @@ class DjConfigMiddlewareTest(TestCase):
         Regression test for the old LocMem Middleware
         """
         self.assertEqual(DjConfigLocMemMiddleware, DjConfigMiddleware)
+
+    @skipIf(get_version().startswith(('1.8.', '1.9.')), 'Django>=1.10 is required')
+    def test_config_middleware_new_style(self):
+        """
+        Should behave like a middleware factory
+        """
+        def request_handler(req):
+            return req
+
+        mid = DjConfigMiddleware(request_handler)
+        self.assertEqual(mid('foo'), 'foo')
 
 
 class DjConfigUtilsTest(TestCase):
