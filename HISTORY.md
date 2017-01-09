@@ -1,3 +1,8 @@
+0.5.3
+==================
+
+* Fix: compat for new style middleware (PR #25)
+
 0.5.2
 ==================
 
