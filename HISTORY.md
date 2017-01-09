@@ -1,3 +1,8 @@
+0.5.2
+==================
+
+* Adds compat for new style (Django 1.10) middleware (PR #24)
+
 0.5.1
 ==================
 
