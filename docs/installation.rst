@@ -47,6 +47,8 @@ Configuration
         },
     ]
 
+.. note:: Use **MIDDLEWARE** instead of **MIDDLEWARE_CLASSES** in Django >= 1.10
+
 Afterwards, run::
 
     $ python manage.py migrate

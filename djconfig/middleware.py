@@ -4,10 +4,16 @@ from __future__ import unicode_literals
 
 from . import conf
 
+try:
+    from django.utils.deprecation import MiddlewareMixin
+except ImportError:  # Django < 1.10
+    MiddlewareMixin = object
+
+
 __all__ = ['DjConfigMiddleware', ]
 
 
-class DjConfigMiddleware(object):
+class DjConfigMiddleware(MiddlewareMixin):
     """
     Populate the cache using the database.\
     Reload the cache *only* if it is not up\

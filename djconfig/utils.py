@@ -38,6 +38,15 @@ def override_djconfig(**new_cache_values):
             conf.config._set_many(new_cache_values)
 
             try:
+                # todo: make a note about this in the docs: don't populate the config within migrations
+
+                # This works coz the config table is empty,
+                # so even if the middleware gets called,
+                # it won't update the config (_updated_at
+                # will be None), this is assuming the table
+                # is not populated by the user (ie: within
+                # a migration), in which case it will load
+                # all the default values
                 return func(*args, **kw)
             finally:
                 conf.config._set_many(old_cache_values)
