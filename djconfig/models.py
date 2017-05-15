@@ -14,9 +14,15 @@ class Config(models.Model):
 
     @classmethod
     def updated_at(cls):
-        query = (
+        return (dict(
             cls.objects
                 .filter(key='_updated_at')
                 .values_list('key', 'value'))
+            .get('_updated_at'))
 
-        return dict(query).get('_updated_at')
+    @classmethod
+    def as_dict(cls):
+        return dict(
+            cls.objects
+                .all()
+                .values_list('key', 'value'))

@@ -91,29 +91,24 @@ class Config(object):
         Otherwise, the initial value from the field form is used
         """
         ConfigModel = apps.get_model('djconfig.Config')
+
+        data = ConfigModel.as_dict()
         cache = {}
-        data = dict(
-            ConfigModel.objects
-                .all()
-                .values_list('key', 'value')
-        )
 
         for form_class in self._registry:
             form = form_class(data=data)
             form.is_valid()
 
-            initial = {
+            # Initial/default data
+            cache.update({
                 field_name: field.initial
-                for field_name, field in form.fields.items()
-            }
-            cache.update(initial)
+                for field_name, field in form.fields.items()})
 
-            cleaned_data = {
+            # Cleaned data
+            cache.update({
                 field_name: value
                 for field_name, value in form.cleaned_data.items()
-                if field_name in data
-            }
-            cache.update(cleaned_data)
+                if field_name in data})
 
         cache['_updated_at'] = data.get('_updated_at')
         self._cache = cache
@@ -145,10 +140,7 @@ class Config(object):
         self._cache[key] = value
 
     def _set_many(self, items):
-        self._cache.update({
-            key: value
-            for key, value in items.items()
-        })
+        self._cache.update(items)
 
 
 config = Config()
