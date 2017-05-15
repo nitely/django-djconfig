@@ -129,17 +129,11 @@ class Config(object):
         """
         ConfigModel = apps.get_model('djconfig.Config')
 
-        data = dict(
-            ConfigModel.objects
-                .filter(key='_updated_at')
-                .values_list('key', 'value')
-        )
-
         # Load for the first time
         if not hasattr(self, '_updated_at'):
             self._reload()
 
-        if data.get('_updated_at') != self._updated_at:
+        if ConfigModel.updated_at() != self._updated_at:
             self._reload()
 
     # Unit test helpers
