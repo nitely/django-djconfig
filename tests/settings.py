@@ -47,6 +47,7 @@ MIDDLEWARE = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'djconfig.middleware.DjConfigMiddleware'
 )
+MIDDLEWARE_CLASSES = MIDDLEWARE
 
 
 DATABASES = {
