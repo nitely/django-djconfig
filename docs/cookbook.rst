@@ -14,7 +14,19 @@ Save an image
 
 
     class MyImageForm(ConfigForm):
-        """Save an image"""
+        """
+            Save an image
+
+            Usage ::
+
+                # on POST, files must be passed
+                form = MyImageForm(data=request.POST, files=request.FILES)
+                if form.is_valid():
+                    form.save()
+                    return redirect('/')
+
+        """
+
         myapp_image = forms.ImageField(initial=None, required=False)
 
         def save_image(self):
