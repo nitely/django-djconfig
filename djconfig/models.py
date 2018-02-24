@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 
-__all__ = ['Config', ]
+__all__ = ['Config']
 
 
 class Config(models.Model):

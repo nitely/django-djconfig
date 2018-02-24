@@ -8,6 +8,7 @@ from django.test import TestCase, override_settings
 from django import forms
 from django.conf import settings
 from django import get_version
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 import djconfig
 from djconfig import forms as djconfig_forms
@@ -18,6 +19,14 @@ from djconfig.models import Config as ConfigModel
 from djconfig.middleware import DjConfigMiddleware, DjConfigLocMemMiddleware
 from djconfig import utils
 from .models import ChoiceModel
+
+
+def make_dummy_image():
+    return SimpleUploadedFile(
+        'image.gif',
+        (b'GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
+         b'\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;'),
+        content_type='image/gif')
 
 
 class FooForm(ConfigForm):
@@ -31,6 +40,8 @@ class FooForm(ConfigForm):
     url = forms.URLField(initial="foo.com/")
     choices = forms.ChoiceField(initial=None, choices=[('1', 'label_a'), ('2', 'label_b')])
     model_choices = forms.ModelChoiceField(initial=None, queryset=ChoiceModel.objects.all())
+    image = forms.ImageField(initial=None, required=False)
+    file = forms.FileField(initial=None, required=False)
 
 
 class DjConfigTest(TestCase):
@@ -52,7 +63,7 @@ class DjConfigTest(TestCase):
         class BadForm(forms.Form):
             """"""
 
-        self.assertRaises(AssertionError, djconfig.register, BadForm)
+        self.assertRaises(ValueError, djconfig.register, BadForm)
 
     def test_config_check_backend_new_middleware(self):
         """
@@ -89,6 +100,21 @@ class ModelChoicePKForm(ConfigForm):
 
     def clean_model_choice(self):
         return self.cleaned_data['model_choice'].pk
+
+
+class ImageForm(ConfigForm):
+
+    image = forms.ImageField(initial=None, required=False)
+
+    def save_image(self):
+        image = self.cleaned_data.get('image')
+        if image:
+            image.name = 'foo_saved.gif'
+
+
+class FileForm(ConfigForm):
+
+    file = forms.FileField(initial=None, required=False)
 
 
 class DjConfigFormsTest(TestCase):
@@ -232,6 +258,54 @@ class DjConfigFormsTest(TestCase):
         finally:
             djconfig_forms.timezone = orig_djconfig_forms_timezone
 
+    def test_image_form_conf(self):
+        """
+        Should save the image path
+        """
+        djconfig.register(ImageForm)
+        djconfig.reload_maybe()
+        self.assertFalse(ConfigModel.objects.filter(key="image").exists())
+        form = ImageForm(files={'image': make_dummy_image()})
+        self.assertTrue(form.is_valid())
+        form.save()
+        qs = ConfigModel.objects.get(key="image")
+        self.assertEqual(qs.value, "image.gif")
+        form = ImageForm(files={'image': None})
+        self.assertTrue(form.is_valid())
+        qs = ConfigModel.objects.get(key="image")
+        self.assertEqual(qs.value, "image.gif")
+
+    def test_image_save_form_conf(self):
+        """
+        Should save the path after storing the image
+        """
+        djconfig.register(ImageForm)
+        djconfig.reload_maybe()
+        self.assertFalse(ConfigModel.objects.filter(key="image").exists())
+        form = ImageForm(files={'image': make_dummy_image()})
+        self.assertTrue(form.is_valid())
+        form.save_image()
+        form.save()
+        qs = ConfigModel.objects.get(key="image")
+        self.assertEqual(qs.value, "foo_saved.gif")
+
+    def test_file_form_conf(self):
+        """
+        Should save the file path
+        """
+        djconfig.register(FileForm)
+        djconfig.reload_maybe()
+        self.assertFalse(ConfigModel.objects.filter(key="file").exists())
+        form = FileForm(files={'file': make_dummy_image()})
+        self.assertTrue(form.is_valid())
+        form.save()
+        qs = ConfigModel.objects.get(key="file")
+        self.assertEqual(qs.value, "image.gif")
+        form = FileForm(files={'file': None})
+        self.assertTrue(form.is_valid())
+        qs = ConfigModel.objects.get(key="file")
+        self.assertEqual(qs.value, "image.gif")
+
 
 class DjConfigConfTest(TestCase):
 
@@ -270,7 +344,7 @@ class DjConfigConfTest(TestCase):
         djconfig.register(FooForm)
         djconfig.reload_maybe()
         keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number',
-                'integer', 'url', 'choices', 'model_choices']
+                'integer', 'url', 'choices', 'model_choices', 'image', 'file']
         values = {k: getattr(config, k) for k in keys}
         self.assertDictEqual(
             values,
@@ -283,7 +357,9 @@ class DjConfigConfTest(TestCase):
                 'integer': 123,
                 'url': "foo.com/",
                 'choices': None,
-                'model_choices': None
+                'model_choices': None,
+                'image': None,
+                'file': None
             }
         )
 
@@ -301,14 +377,16 @@ class DjConfigConfTest(TestCase):
             ConfigModel(key='integer', value=321),
             ConfigModel(key='url', value="foo2.com/"),
             ConfigModel(key='choices', value='1'),
-            ConfigModel(key='model_choices', value=model_choice.pk)
+            ConfigModel(key='model_choices', value=model_choice.pk),
+            ConfigModel(key='image', value='path/image.gif'),
+            ConfigModel(key='file', value='path/file.zip')
         ]
         ConfigModel.objects.bulk_create(data)
 
         djconfig.register(FooForm)
         djconfig.reload_maybe()
         keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number',
-                'integer', 'url', 'choices', 'model_choices']
+                'integer', 'url', 'choices', 'model_choices', 'image', 'file']
         values = {k: getattr(config, k) for k in keys}
         self.assertDictEqual(
             values,
@@ -321,7 +399,9 @@ class DjConfigConfTest(TestCase):
                 'integer': 321,
                 'url': "http://foo2.com/",
                 'choices': '1',
-                'model_choices': model_choice
+                'model_choices': model_choice,
+                'image': 'path/image.gif',
+                'file': 'path/file.zip'
             }
         )
 
@@ -484,3 +564,4 @@ class DjConfigUtilsTest(TestCase):
         """
         model_choice = ChoiceModel.objects.create(name='foo')
         self.assertEqual(utils.serialize(model_choice), model_choice.pk)
+

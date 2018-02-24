@@ -10,7 +10,7 @@ except ImportError:  # Django < 1.10
     MiddlewareMixin = object
 
 
-__all__ = ['DjConfigMiddleware', ]
+__all__ = ['DjConfigMiddleware']
 
 
 class DjConfigMiddleware(MiddlewareMixin):

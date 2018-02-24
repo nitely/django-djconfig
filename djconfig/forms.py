@@ -2,7 +2,6 @@
 
 from __future__ import unicode_literals
 
-from django import forms
 from django.utils import timezone
 from django.apps import apps
 
@@ -10,7 +9,7 @@ from . import conf
 from . import utils
 
 
-class ConfigForm(forms.Form):
+class ConfigForm(conf._ConfigFormBase):
     """
     Base class for every registered config form.\
     It behaves like a regular form.
@@ -30,10 +29,9 @@ class ConfigForm(forms.Form):
         super(ConfigForm, self).__init__(*args, **kwargs)
 
         self.initial.update({
-            field_name: getattr(conf.config, field_name)
-            for field_name in self.fields
-            if hasattr(conf.config, field_name)
-        })
+            name: getattr(conf.config, name)
+            for name in self.fields
+            if hasattr(conf.config, name)})
 
     def save(self):
         """
