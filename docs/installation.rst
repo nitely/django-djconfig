@@ -6,15 +6,15 @@ Installation
 Requirements
 ------------
 
-* Python 2.7, 3.3, 3.4 or 3.5 (recommended)
-* Django 1.8 LTS
+* Python 2.7, 3.4, 3.5 or 3.6 (recommended)
+* Django 1.8 LTS, 1.9, 1.10, 1.11 LTS or 2.0
 
 Pip
 ---
 
-Latest version can be installed via pip::
+::
 
-    $ pip install django-djconfig
+    pip install django-djconfig
 
 Configuration
 -------------
@@ -51,4 +51,6 @@ Configuration
 
 Afterwards, run::
 
-    $ python manage.py migrate
+    python manage.py migrate
+
+All done.
