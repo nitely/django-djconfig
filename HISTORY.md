@@ -1,3 +1,11 @@
+0.6.0
+==================
+
+* Add: support for `ImageField` and `FileField` PR #27
+* Adds Django 1.11 support (no changes were required)
+* Adds Django 2.0 support (no changes were required)
+* Adds Python 3.6 support (no changes were required)
+
 0.5.3
 ==================
 
