@@ -3,6 +3,44 @@
 from __future__ import unicode_literals
 
 from django.apps import apps
+from django import forms
+from django.conf import settings
+
+__all__ = [
+    "Config",
+    "config",
+    "register",
+    "register"]
+
+
+class _ConfigFormBase(forms.Form):
+    def save(self):
+        raise NotImplementedError()
+
+
+def _check_backend():
+    """
+    Check :py:class:`djconfig.middleware.DjConfigMiddleware`\
+    is registered into ``settings.MIDDLEWARE_CLASSES``
+    """
+    # Django 1.10 does not allow
+    # both settings to be set
+    middleware = set(
+        getattr(settings, 'MIDDLEWARE', None) or
+        getattr(settings, 'MIDDLEWARE_CLASSES', None) or
+        [])
+
+    # Deprecated alias
+    if "djconfig.middleware.DjConfigLocMemMiddleware" in middleware:
+        return
+
+    if "djconfig.middleware.DjConfigMiddleware" in middleware:
+        return
+
+    raise ValueError(
+        "djconfig.middleware.DjConfigMiddleware "
+        "is required but it was not found in "
+        "MIDDLEWARE_CLASSES nor in MIDDLEWARE")
 
 
 class Config(object):
@@ -10,7 +48,7 @@ class Config(object):
     Contain registry of config forms and\
     cache of key-value matching the forms field-value.
 
-    All methods must be private to avoid clashing\
+    All methods are private to avoid clashing\
     with the dynamic attributes.
 
     This should be usually accessed through :py:data:`config`
@@ -32,60 +70,25 @@ class Config(object):
 
     def _register(self, form_class, check_middleware=True):
         """
-        * Public
-
         Register a config form into the registry
 
-        :param object form_class:\
-        The form class to register, instance of :py:class:`djconfig.forms.ConfigForm`
-        :param bool check_middleware: Check if\
+        :param object form_class: The form class to register.\
+        Must be an instance of :py:class:`djconfig.forms.ConfigForm`
+        :param bool check_middleware: Check\
         :py:class:`djconfig.middleware.DjConfigMiddleware`\
         is registered into ``settings.MIDDLEWARE_CLASSES``. Default True
         """
-        from . import forms  # avoids circular dependency
-
-        assert issubclass(form_class, forms.ConfigForm), \
-            "The form does not inherit from ConfigForm"
+        if not issubclass(form_class, _ConfigFormBase):
+            raise ValueError(
+                "The form does not inherit from `forms.ConfigForm`")
 
         self._registry.add(form_class)
 
         if check_middleware:
-            self._check_backend()
-
-    @staticmethod
-    def _check_backend():
-        """
-        * Private
-
-        Check if :py:class:`djconfig.middleware.DjConfigMiddleware`\
-        is registered into ``settings.MIDDLEWARE_CLASSES``
-        """
-        from django.conf import settings
-
-        # Django 1.10 does not allow
-        # both setting to be set
-        middlewares = set(
-            getattr(settings, 'MIDDLEWARE', None) or
-            getattr(settings, 'MIDDLEWARE_CLASSES', None) or
-            [])
-
-        # Deprecated alias
-        if "djconfig.middleware.DjConfigLocMemMiddleware" in middlewares:
-            return
-
-        if "djconfig.middleware.DjConfigMiddleware" in middlewares:
-            return
-
-        raise ValueError(
-            "djconfig.middleware.DjConfigMiddleware "
-            "is required but it was not found in "
-            "MIDDLEWARE_CLASSES nor in MIDDLEWARE"
-        )
+            _check_backend()
 
     def _reload(self):
         """
-        * Private
-
         Gets every registered form's field value.\
         If a field name is found in the db, it will load it from there.\
         Otherwise, the initial value from the field form is used
@@ -95,33 +98,38 @@ class Config(object):
         data = dict(
             ConfigModel.objects
                 .all()
-                .values_list('key', 'value')
-        )
+                .values_list('key', 'value'))
 
+        # populate cache with initial form values,
+        # then with cleaned database values,
+        # then with raw database file/image paths
         for form_class in self._registry:
-            form = form_class(data=data)
+            empty_form = form_class()
+            cache.update({
+                name: field.initial
+                for name, field in empty_form.fields.items()})
+            form = form_class(data={
+                name: data[name]
+                for name, field in empty_form.fields.items()
+                if name in data and not isinstance(field, forms.FileField)})
             form.is_valid()
-
-            initial = {
-                field_name: field.initial
-                for field_name, field in form.fields.items()
-            }
-            cache.update(initial)
-
-            cleaned_data = {
-                field_name: value
-                for field_name, value in form.cleaned_data.items()
-                if field_name in data
-            }
-            cache.update(cleaned_data)
+            cache.update({
+                name: value
+                for name, value in form.cleaned_data.items()
+                if name in data})
+            # files are special because they don't have an initial value
+            # and the POSTED data must contain the file. So, we keep
+            # the stored path as is
+            cache.update({
+                name: data[name]
+                for name, field in empty_form.fields.items()
+                if name in data and isinstance(field, forms.FileField)})
 
         cache['_updated_at'] = data.get('_updated_at')
         self._cache = cache
 
     def _reload_maybe(self):
         """
-        * Public
-
         Reload the config if the config\
         model has been updated. This is called\
         once on every request by the middleware.\
@@ -132,14 +140,10 @@ class Config(object):
         data = dict(
             ConfigModel.objects
                 .filter(key='_updated_at')
-                .values_list('key', 'value')
-        )
+                .values_list('key', 'value'))
 
-        # Load for the first time
-        if not hasattr(self, '_updated_at'):
-            self._reload()
-
-        if data.get('_updated_at') != self._updated_at:
+        if (not hasattr(self, '_updated_at') or
+                self._updated_at != data.get('_updated_at')):
             self._reload()
 
     # Unit test helpers
@@ -153,8 +157,7 @@ class Config(object):
     def _set_many(self, items):
         self._cache.update({
             key: value
-            for key, value in items.items()
-        })
+            for key, value in items.items()})
 
 
 config = Config()

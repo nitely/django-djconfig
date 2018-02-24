@@ -16,6 +16,8 @@ The following form fields were tested:
 * ``URLField``
 * ``ChoiceField``
 * ``ModelChoiceField``
+* ``FileField``
+* ``ImageField``
 
 DateField is not supported at this time (sorry).
 

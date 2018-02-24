@@ -7,11 +7,9 @@ from django.db import models
 
 from . import conf
 
-
 __all__ = [
     'override_djconfig',
-    'serialize'
-]
+    'serialize']
 
 
 def override_djconfig(**new_cache_values):
@@ -32,13 +30,13 @@ def override_djconfig(**new_cache_values):
         def func_wrapper(*args, **kw):
             old_cache_values = {
                 key: getattr(conf.config, key)
-                for key in new_cache_values
-            }
+                for key in new_cache_values}
 
             conf.config._set_many(new_cache_values)
 
             try:
-                # todo: make a note about this in the docs: don't populate the config within migrations
+                # todo: make a note about this in the docs:
+                #       don't populate the config within migrations
 
                 # This works coz the config table is empty,
                 # so even if the middleware gets called,
