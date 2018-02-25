@@ -2,8 +2,11 @@ from __future__ import unicode_literals
 
 
 SECRET_KEY = 'secret'
+
 DEBUG = True
+
 ROOT_URLCONF = 'tests.urls'
+
 STATIC_URL = '/static/'
 
 TEMPLATES = [
@@ -26,6 +29,7 @@ TEMPLATES = [
 ]
 
 INSTALLED_APPS = (
+    # required for admin view
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
