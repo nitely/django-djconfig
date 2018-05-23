@@ -86,10 +86,10 @@ class _Config(object):
     _meta = Meta()
 
 
-def register(model_admin):
-    """Register a ``ConfigAdmin``"""
-    assert issubclass(model_admin, ConfigAdmin)
+def register(conf_admin):
+    """Register a ``djconfig.admin.ConfigAdmin`` subclass"""
+    assert issubclass(conf_admin, ConfigAdmin)
     assert issubclass(
-        getattr(model_admin, 'change_list_form', None),
+        getattr(conf_admin, 'change_list_form', None),
         ConfigForm)
-    admin.site.register([_Config], model_admin)
+    admin.site.register([_Config], conf_admin)
