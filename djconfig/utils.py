@@ -2,8 +2,10 @@
 
 from __future__ import unicode_literals
 from functools import wraps
+import json
 
 from django.db import models
+from django import forms
 
 from . import conf
 
@@ -19,7 +21,7 @@ def override_djconfig(**new_cache_values):
     This is similar to :py:func:`django.test.override_settings`,\
     use it in testing.
 
-    :param \*\*new_cache_values: Keyword arguments,\
+    :param new_cache_values: Keyword arguments,\
     the key should match one in the config,\
     a new one is created otherwise,\
     the value is overridden within\
@@ -53,8 +55,8 @@ def override_djconfig(**new_cache_values):
 
     return decorator
 
-
-def serialize(value):
+# todo: add DateField
+def serialize(value, field):
     """
     Form values serialization
 
@@ -62,9 +64,10 @@ def serialize(value):
     for saving it into the database and later\
     loading it into the form as initial value
     """
-    # todo: add DateField
-
+    assert isinstance(field, forms.Field)
+    if isinstance(field, forms.ModelMultipleChoiceField):
+        return json.dumps([v.pk for v in value])
+    # todo: remove
     if isinstance(value, models.Model):
         return value.pk
-
     return value

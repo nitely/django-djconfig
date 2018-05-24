@@ -40,6 +40,7 @@ class FooForm(ConfigForm):
     url = forms.URLField(initial="foo.com/")
     choices = forms.ChoiceField(initial=None, choices=[('1', 'label_a'), ('2', 'label_b')])
     model_choices = forms.ModelChoiceField(initial=None, queryset=ChoiceModel.objects.all())
+    model_m_choices = forms.ModelMultipleChoiceField(initial=None, queryset=ChoiceModel.objects.all())
     image = forms.ImageField(initial=None, required=False)
     file = forms.FileField(initial=None, required=False)
 
@@ -100,6 +101,11 @@ class ModelChoicePKForm(ConfigForm):
 
     def clean_model_choice(self):
         return self.cleaned_data['model_choice'].pk
+
+
+class ModelMultipleChoiceForm(ConfigForm):
+
+    model_choices = forms.ModelMultipleChoiceField(initial=None, queryset=ChoiceModel.objects.all())
 
 
 class ImageForm(ConfigForm):
@@ -201,6 +207,24 @@ class DjConfigFormsTest(TestCase):
 
         qs = ConfigModel.objects.get(key="model_choice")
         self.assertEqual(qs.value, str(model_choice.pk))
+
+    def test_config_form_model_multi_choice(self):
+        """
+        Saves ModelMultipleChoiceField
+        """
+        djconfig.register(ModelMultipleChoiceForm)
+        model_choice_a = ChoiceModel.objects.create(name='foo')
+        model_choice_b = ChoiceModel.objects.create(name='bar')
+        form = ModelMultipleChoiceForm(data={
+            "model_choices": [
+                str(model_choice_a.pk),
+                str(model_choice_b.pk)]})
+        self.assertTrue(form.is_valid())
+        form.save()
+
+        qs = ConfigModel.objects.get(key="model_choices")
+        self.assertEqual(qs.value, '[1, 2]')
+        self.assertEqual(list(config.model_choices), [model_choice_a, model_choice_b])
 
     def test_config_form_update(self):
         """
@@ -344,7 +368,8 @@ class DjConfigConfTest(TestCase):
         djconfig.register(FooForm)
         djconfig.reload_maybe()
         keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number',
-                'integer', 'url', 'choices', 'model_choices', 'image', 'file']
+                'integer', 'url', 'choices', 'model_choices', 'model_m_choices',
+                'image', 'file']
         values = {k: getattr(config, k) for k in keys}
         self.assertDictEqual(
             values,
@@ -358,6 +383,7 @@ class DjConfigConfTest(TestCase):
                 'url': "foo.com/",
                 'choices': None,
                 'model_choices': None,
+                'model_m_choices': None,
                 'image': None,
                 'file': None
             }
@@ -368,6 +394,7 @@ class DjConfigConfTest(TestCase):
         Load configuration into the cache
         """
         model_choice = ChoiceModel.objects.create(name='A')
+        model_choice_b = ChoiceModel.objects.create(name='B')
         data = [
             ConfigModel(key='boolean', value=False),
             ConfigModel(key='boolean_false', value=True),
@@ -378,6 +405,9 @@ class DjConfigConfTest(TestCase):
             ConfigModel(key='url', value="foo2.com/"),
             ConfigModel(key='choices', value='1'),
             ConfigModel(key='model_choices', value=model_choice.pk),
+            ConfigModel(key='model_m_choices', value=utils.serialize(
+                ChoiceModel.objects.filter(pk=model_choice_b.pk),
+                forms.ModelMultipleChoiceField(None))),
             ConfigModel(key='image', value='path/image.gif'),
             ConfigModel(key='file', value='path/file.zip')
         ]
@@ -386,7 +416,8 @@ class DjConfigConfTest(TestCase):
         djconfig.register(FooForm)
         djconfig.reload_maybe()
         keys = ['boolean', 'boolean_false', 'char', 'email', 'float_number',
-                'integer', 'url', 'choices', 'model_choices', 'image', 'file']
+                'integer', 'url', 'choices', 'model_choices', 'model_m_choices',
+                'image', 'file']
         values = {k: getattr(config, k) for k in keys}
         self.assertDictEqual(
             values,
@@ -400,6 +431,7 @@ class DjConfigConfTest(TestCase):
                 'url': "http://foo2.com/",
                 'choices': '1',
                 'model_choices': model_choice,
+                'model_m_choices': [model_choice_b],
                 'image': 'path/image.gif',
                 'file': 'path/file.zip'
             }
@@ -563,5 +595,13 @@ class DjConfigUtilsTest(TestCase):
         Serializes complex objects
         """
         model_choice = ChoiceModel.objects.create(name='foo')
-        self.assertEqual(utils.serialize(model_choice), model_choice.pk)
-
+        self.assertEqual(
+            utils.serialize(
+                model_choice,
+                forms.ModelChoiceField(None)),
+            model_choice.pk)
+        self.assertEqual(
+            utils.serialize(
+                ChoiceModel.objects.all(),
+                forms.ModelMultipleChoiceField(None)),
+            str([model_choice.pk]))

@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
+import json
 
 from django.apps import apps
 from django import forms
+from django.db import models
 from django.conf import settings
 
 __all__ = [
@@ -42,6 +44,16 @@ def _check_backend():
         "is required but it was not found in "
         "MIDDLEWARE_CLASSES nor in MIDDLEWARE")
 
+def _deserialize(value, field):
+    assert isinstance(field, forms.Field)
+    if isinstance(field, forms.ModelMultipleChoiceField):
+        return json.loads(value, encoding='utf8')
+    return value
+
+def _unlazify(value):
+    if isinstance(value, models.QuerySet):
+        return list(value)
+    return value
 
 class Config(object):
     """
@@ -109,17 +121,18 @@ class Config(object):
                 name: field.initial
                 for name, field in empty_form.fields.items()})
             form = form_class(data={
-                name: data[name]
+                name: _deserialize(data[name], field)
                 for name, field in empty_form.fields.items()
                 if name in data and not isinstance(field, forms.FileField)})
             form.is_valid()
             cache.update({
-                name: value
+                name: _unlazify(value)
                 for name, value in form.cleaned_data.items()
                 if name in data})
             # files are special because they don't have an initial value
             # and the POSTED data must contain the file. So, we keep
             # the stored path as is
+            # TODO: see if serialize/deserialize/unlazify can be used for this instead
             cache.update({
                 name: data[name]
                 for name, field in empty_form.fields.items()
