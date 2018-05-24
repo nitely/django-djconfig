@@ -1,3 +1,8 @@
+0.7.0
+==================
+
+* Add: support for `ModelMultipleChoiceField`
+
 0.6.0
 ==================
 
