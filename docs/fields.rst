@@ -16,6 +16,7 @@ The following form fields were tested:
 * ``URLField``
 * ``ChoiceField``
 * ``ModelChoiceField``
+* ``ModelMultipleChoiceField``
 * ``FileField``
 * ``ImageField``
 
