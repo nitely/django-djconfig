@@ -13,8 +13,8 @@ and stored in an in-memory cache for later access.
 
 ## Requirements
 
-* Python 2.7, 3.4, 3.5 or 3.6 (recommended)
-* Django 1.8 LTS, 1.9, 1.10, 1.11 LTS or 2.0
+* Python 2.7, 3.4, 3.5, 3.6 or 3.7
+* Django 1.11 LTS, 2.0 or 2.1
 
 ## Documentation
 
