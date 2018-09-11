@@ -1,3 +1,10 @@
+0.8.0
+==================
+
+* Drop support for DJango 1.8, 1.9 and 1.10
+* Add support for Django 2.1 (no changes were required)
+* Adds Python 3.7 support (no changes were required)
+
 0.7.0
 ==================
 
