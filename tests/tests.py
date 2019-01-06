@@ -9,6 +9,8 @@ from django import forms
 from django.conf import settings
 from django import get_version
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.urls import reverse
+from django.contrib.auth import get_user_model
 
 import djconfig
 from djconfig import forms as djconfig_forms
@@ -605,3 +607,78 @@ class DjConfigUtilsTest(TestCase):
                 ChoiceModel.objects.all(),
                 forms.ModelMultipleChoiceField(None)),
             str([model_choice.pk]))
+
+def login(test_case_instance, user=None, password=None):
+    user = user or test_case_instance.user
+    password = password or "bar"
+    login_successful = test_case_instance.client.login(
+        username=user.username,
+        password=password)
+    test_case_instance.assertTrue(login_successful)
+
+
+User = get_user_model()
+
+
+class BarConfigAdminForm(ConfigForm):
+
+    bar_config_char = forms.CharField(initial="unique_BarConfigAdminForm")
+
+
+class BazConfigAdminForm(ConfigForm):
+
+    baz_config_char = forms.CharField(initial="unique_BazConfigAdminForm")
+
+
+class DjConfigAdminTest(TestCase):
+
+    def setUp(self):
+        config._reset()
+        djconfig.register(BarConfigAdminForm)
+        djconfig.register(BazConfigAdminForm)
+        self.user = User.objects.create_superuser(
+            'foo', 'foo@bar.com', 'bar')
+
+    def test_admin_change_list(self):
+        login(self)
+        response = self.client.get(
+            reverse('admin:tests_barconfig_changelist'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context['form'], BarConfigAdminForm)
+        self.assertEqual(response.context['app_label'], 'tests')
+        self.assertContains(response, 'value="unique_BarConfigAdminForm"')
+
+    def test_admin_change_list_post(self):
+        login(self)
+        response = self.client.post(
+            reverse('admin:tests_barconfig_changelist'),
+            {'bar_config_char': 'foobar'})
+        expected_url = reverse('admin:tests_barconfig_changelist')
+        self.assertRedirects(response, expected_url, status_code=302)
+        self.assertEqual(config.bar_config_char, 'foobar')
+
+    def test_admin_add(self):
+        login(self)
+        response = self.client.get(
+            reverse('admin:tests_barconfig_add'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context['form'], BarConfigAdminForm)
+        self.assertContains(response, 'value="unique_BarConfigAdminForm"')
+
+    def test_admin_change_list_djconfig_foobar(self):
+        login(self)
+        response = self.client.get(
+            reverse('admin:djconfig_foobarconfig_changelist'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context['form'], BarConfigAdminForm)
+        self.assertEqual(response.context['app_label'], 'djconfig')
+        self.assertContains(response, 'value="unique_BarConfigAdminForm"')
+
+    def test_admin_change_list_baz(self):
+        login(self)
+        response = self.client.get(
+            reverse('admin:tests_bazconfig_changelist'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context['form'], BazConfigAdminForm)
+        self.assertEqual(response.context['app_label'], 'tests')
+        self.assertContains(response, 'value="unique_BazConfigAdminForm"')
