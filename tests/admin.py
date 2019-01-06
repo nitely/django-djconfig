@@ -3,21 +3,24 @@
 from django.contrib import admin
 import djconfig
 
-from .tests import FooForm, BarForm, ChoiceModel
+from .tests import (
+    BarConfigAdminForm,
+    BazConfigAdminForm,
+    ChoiceModel)
 
 
-class FooAdmin(djconfig.admin.ConfigAdmin):
-    change_list_form = FooForm
+class FooBarAdmin(djconfig.admin.ConfigAdmin):
+    change_list_form = BarConfigAdminForm
 
 
-class FooConfig(djconfig.admin.Config):
+class FooBarConfig(djconfig.admin.Config):
     app_label = 'djconfig'
-    verbose_name_plural = 'foo config'
-    name = 'fooconfig'
+    verbose_name_plural = 'foo bar config'
+    name = 'foobarconfig'
 
 
 class BarAdmin(djconfig.admin.ConfigAdmin):
-    change_list_form = BarForm
+    change_list_form = BarConfigAdminForm
 
 
 class BarConfig(djconfig.admin.Config):
@@ -26,17 +29,21 @@ class BarConfig(djconfig.admin.Config):
     name = 'barconfig'
 
 
+class BazAdmin(djconfig.admin.ConfigAdmin):
+    change_list_form = BazConfigAdminForm
+
+
 class BazConfig(djconfig.admin.Config):
     app_label = 'tests'
     verbose_name_plural = 'baz config'
     name = 'bazconfig'
 
 
-djconfig.admin.register(FooConfig, FooAdmin)
+djconfig.admin.register(FooBarConfig, FooBarAdmin)
 djconfig.admin.register(BarConfig, BarAdmin)
-djconfig.admin.register(BazConfig, FooAdmin)
-djconfig.register(FooForm)
-djconfig.register(BarForm)
+djconfig.admin.register(BazConfig, BazAdmin)
+djconfig.register(BarConfigAdminForm)
+djconfig.register(BazConfigAdminForm)
 
 
 class ChoiceAdmin(admin.ModelAdmin):
