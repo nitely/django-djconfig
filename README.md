@@ -5,6 +5,10 @@
 [![pypi](https://img.shields.io/pypi/v/django-djconfig.svg?style=flat-square)](https://pypi.python.org/pypi/django-djconfig)
 [![licence](https://img.shields.io/pypi/l/django-djconfig.svg?style=flat-square)](https://raw.githubusercontent.com/nitely/django-djconfig/master/LICENSE)
 
+djconfig is a library to define dynamic global settings
+that can be set within a regular django form and edited
+within django's admin panel, or a custom regular view.
+
 ## How it works
 
 Set the config values using a regular form.
