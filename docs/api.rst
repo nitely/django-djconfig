@@ -19,8 +19,6 @@ Config Object
 
 .. module:: djconfig.conf
 .. autoclass:: Config
-   :members: _register, _reload_maybe
-   :special-members: __getattr__
 
 ConfigForm Object
 -----------------
