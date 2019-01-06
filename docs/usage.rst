@@ -111,3 +111,17 @@ There is a helper similar to django's ``@override_settings`` that can be used in
     def test_something(self):
         # ...
 
+Calling ``djconfig.reload_maybe()`` is required when
+unit testing. For example, it may be called within
+the test's ``setUp`` method to run it before each test.
+The middleware will call this, so it's not needed
+on integration tests that make use of django's test ``Client``.
+
+::
+
+    # tests.py
+
+    import djconfig
+
+    def setUp(self):
+        djconfig.reload_maybe()
