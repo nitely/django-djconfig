@@ -8,11 +8,13 @@ from django.contrib.admin.options import csrf_protect_m
 from django.contrib.admin import helpers
 from django.core.exceptions import PermissionDenied
 from django.conf.urls import url
+from django.utils.text import slugify
 
 from .forms import ConfigForm
 
 __all__ = [
     'ConfigAdmin',
+    'Section',
     'register']
 
 
@@ -49,7 +51,7 @@ class ConfigAdmin(admin.ModelAdmin):
         context = dict(
             self.admin_site.each_context(request),
             config_values=[],
-            title=self.model._meta.app_config.verbose_name,
+            title=self.model._meta.verbose_name_plural,
             app_label=self.model._meta.app_label,
             opts=self.model._meta,
             form=form,
@@ -64,32 +66,46 @@ class ConfigAdmin(admin.ModelAdmin):
         return TemplateResponse(request, self.change_list_template, context)
 
 
-class _Config(object):
-    class Meta(object):
-        app_label = 'djconfig'
-        object_name = 'Config'
-        model_name = module_name = 'config'
-        verbose_name_plural = 'config'
-        abstract = False
-        swapped = False
+class _ConfigMeta(object):
+    app_label = ''
+    object_name = ''
+    model_name = module_name = ''
+    verbose_name_plural = ''
+    abstract = False
+    swapped = False
 
-        def get_ordered_objects(self):
-            return False
+    def get_ordered_objects(self):
+        return False
 
-        def get_change_permission(self):
-            return 'change_%s' % self.model_name
+    def get_change_permission(self):
+        return 'change_djconfig_config'
 
-        @property
-        def app_config(self):
-            return apps.get_app_config(self.app_label)
-
-    _meta = Meta()
+    @property
+    def app_config(self):
+        return apps.get_app_config(self.app_label)
 
 
-def register(conf_admin):
+class Config(object):
+    app_label = ''
+    verbose_name_plural = ''
+    slug = ''
+
+
+def register(conf, conf_admin, **options):
     """Register a ``djconfig.admin.ConfigAdmin`` subclass"""
     assert issubclass(conf_admin, ConfigAdmin)
     assert issubclass(
         getattr(conf_admin, 'change_list_form', None),
         ConfigForm)
-    admin.site.register([_Config], conf_admin)
+    assert issubclass(conf, Config)
+    assert conf.app_label
+    assert conf.verbose_name_plural
+    config_class = type("Config", (), {})
+    slug_name = slugify(conf.verbose_name_plural).replace('-', '')
+    config_class._meta = type("Meta", (_ConfigMeta,), {
+        'app_label': conf.app_label,
+        'verbose_name_plural': conf.verbose_name_plural,
+        'object_name': 'Config',
+        'model_name': conf.slug or 'djconfig_{}'.format(slug_name),
+        'module_name': conf.slug or 'djconfig_{}'.format(slug_name)})
+    admin.site.register([config_class], conf_admin, **options)
