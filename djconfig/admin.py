@@ -1,5 +1,22 @@
 # -*- coding: utf-8 -*-
 
+"""
+This module allows to register a config into django's admin.
+
+Usage::
+
+    class FooConfigAdmin(djconfig.admin.ConfigAdmin):
+        change_list_form = FooConfigForm
+
+
+    class FooConfig(djconfig.admin.Config):
+        app_label = 'djconfig'
+        verbose_name_plural = 'foo config'
+        slug = 'fooconfig'
+
+    djconfig.admin.register(FooConfig, FooConfigAdmin)
+"""
+
 import re
 
 from django.contrib import admin
@@ -10,7 +27,6 @@ from django.contrib.admin.options import csrf_protect_m
 from django.contrib.admin import helpers
 from django.core.exceptions import PermissionDenied
 from django.conf.urls import url
-from django.utils.text import slugify
 
 from .forms import ConfigForm
 
@@ -114,18 +130,6 @@ class Config(object):
 def register(conf, conf_admin, **options):
     """
     Register a new admin section.
-
-    Usage::
-
-        class FooAdmin(djconfig.admin.ConfigAdmin):
-            change_list_form = FooForm
-
-
-        class FooConfig(djconfig.admin.Config):
-            app_label = 'djconfig'
-            verbose_name_plural = 'foo config'
-
-        djconfig.admin.register(FooConfig, FooAdmin)
 
     :param conf: A subclass of ``djconfig.admin.Config``
     :param conf_admin: A subclass of ``djconfig.admin.ConfigAdmin``

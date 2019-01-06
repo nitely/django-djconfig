@@ -125,3 +125,70 @@ on integration tests that make use of django's test ``Client``.
 
     def setUp(self):
         djconfig.reload_maybe()
+
+Admin
+-----
+
+Register a config form into django admin.
+
+The following example shows how to register a single form that
+contains all settings:
+
+::
+
+    # admin.py
+
+    import djconfig
+    from .forms import AppConfigForm
+
+
+    class AppConfigAdmin(djconfig.admin.ConfigAdmin):
+        change_list_form = AppConfigForm
+
+
+    class AppConfig(djconfig.admin.Config):
+        app_label = 'djconfig'
+        verbose_name_plural = 'app config'
+        slug = 'appconfig'
+
+    djconfig.admin.register(AppConfig, AppConfigAdmin)
+
+The following example shows how to register a form in multiple apps:
+
+::
+
+    # myapp/admin.py
+
+    import djconfig
+    from .forms import MyAppConfigForm
+
+
+    class MyAppConfigAdmin(djconfig.admin.ConfigAdmin):
+        change_list_form = MyAppConfigForm
+
+
+    class MyAppConfig(djconfig.admin.Config):
+        app_label = 'myapp'
+        verbose_name_plural = 'myapp config'
+        slug = 'myappconfig'
+
+    djconfig.admin.register(MyAppConfig, MyAppConfigAdmin)
+
+
+    # myotherapp/admin.py
+
+    import djconfig
+    from .forms import MyOtherAppConfigForm
+
+
+    class MyOtherAppConfigAdmin(djconfig.admin.ConfigAdmin):
+        change_list_form = MyOtherAppConfigForm
+
+
+    class MyOtherAppConfig(djconfig.admin.Config):
+        app_label = 'myotherapp'
+        verbose_name_plural = 'myotherapp config'
+        slug = 'myotherappconfig'
+
+    djconfig.admin.register(MyOtherAppConfig, MyOtherAppConfigForm)
+

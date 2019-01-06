@@ -44,3 +44,11 @@ Test Helpers
 
 .. automodule:: djconfig.utils
    :members: override_djconfig
+
+Admin
+-----
+
+.. automodule:: djconfig.admin
+   :members: register
+.. autoclass:: ConfigAdmin
+.. autoclass:: Config
