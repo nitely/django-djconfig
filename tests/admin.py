@@ -42,8 +42,6 @@ class BazConfig(djconfig.admin.Config):
 djconfig.admin.register(FooBarConfig, FooBarAdmin)
 djconfig.admin.register(BarConfig, BarAdmin)
 djconfig.admin.register(BazConfig, BazAdmin)
-djconfig.register(BarConfigAdminForm)
-djconfig.register(BazConfigAdminForm)
 
 
 class ChoiceAdmin(admin.ModelAdmin):
