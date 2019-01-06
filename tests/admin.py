@@ -13,6 +13,7 @@ class FooAdmin(djconfig.admin.ConfigAdmin):
 class FooConfig(djconfig.admin.Config):
     app_label = 'djconfig'
     verbose_name_plural = 'foo config'
+    name = 'fooconfig'
 
 
 class BarAdmin(djconfig.admin.ConfigAdmin):
@@ -22,10 +23,13 @@ class BarAdmin(djconfig.admin.ConfigAdmin):
 class BarConfig(djconfig.admin.Config):
     app_label = 'tests'
     verbose_name_plural = 'bar config'
+    name = 'barconfig'
+
 
 class BazConfig(djconfig.admin.Config):
     app_label = 'tests'
     verbose_name_plural = 'baz config'
+    name = 'bazconfig'
 
 
 djconfig.admin.register(FooConfig, FooAdmin)

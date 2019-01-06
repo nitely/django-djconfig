@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import re
+
 from django.contrib import admin
 from django.apps import apps
 from django.http import HttpResponseRedirect
@@ -14,12 +16,18 @@ from .forms import ConfigForm
 
 __all__ = [
     'ConfigAdmin',
-    'Section',
+    'Config',
     'register']
 
 
 class ConfigAdmin(admin.ModelAdmin):
+    """
+    A ``ConfigAdmin`` is subclass of \
+    ``django.contrib.admin.ModelAdmin``.
 
+    ``change_list_form`` class var must be set to a valid \
+    ``djconfig.forms.ConfigForm`` subclass
+    """
     change_list_template = 'admin/djconfig/change_list.html'
     change_list_form = None
 
@@ -86,26 +94,59 @@ class _ConfigMeta(object):
 
 
 class Config(object):
+    """
+    A ``Config`` is akin to django's model ``Meta`` class.
+
+    ``app_label`` must be a valid installed app, ``'djconfig'`` \
+    may be used for every registered form, if they don't belong \
+    in a particular app. ``verbose_name_plural`` is the title of \
+    the admin's section link, it can be anything. The \
+    (``app_label``, ``verbose_name_plural``, ``name``) must be \
+    unique together across registered forms. \
+    ``name`` is used as the link slug, and it \
+    might be used in other places, valid chars are ``[a-zA-Z_]``
+    """
     app_label = ''
     verbose_name_plural = ''
-    slug = ''
+    name = ''
 
 
 def register(conf, conf_admin, **options):
-    """Register a ``djconfig.admin.ConfigAdmin`` subclass"""
-    assert issubclass(conf_admin, ConfigAdmin)
+    """
+    Register a new admin section.
+
+    Usage::
+
+        class FooAdmin(djconfig.admin.ConfigAdmin):
+            change_list_form = FooForm
+
+
+        class FooConfig(djconfig.admin.Config):
+            app_label = 'djconfig'
+            verbose_name_plural = 'foo config'
+
+        djconfig.admin.register(FooConfig, FooAdmin)
+
+    :param conf: A subclass of ``djconfig.admin.Config``
+    :param conf_admin: A subclass of ``djconfig.admin.ConfigAdmin``
+    :param options: Extra options passed to ``django.contrib.admin.site.register``
+    """
+    assert issubclass(conf_admin, ConfigAdmin), (
+        'conf_admin is not a ConfigAdmin subclass')
     assert issubclass(
         getattr(conf_admin, 'change_list_form', None),
-        ConfigForm)
-    assert issubclass(conf, Config)
-    assert conf.app_label
-    assert conf.verbose_name_plural
+        ConfigForm), 'No change_list_form set'
+    assert issubclass(conf, Config), (
+        'conf is not a Config subclass')
+    assert conf.app_label, 'No app_label set'
+    assert conf.verbose_name_plural, 'No verbose_name_plural set'
+    assert not conf.name or re.match(r"^[a-zA-Z_]+$", conf.name), (
+        'Not a valid name. Valid chars are [a-zA-Z_]')
     config_class = type("Config", (), {})
-    slug_name = slugify(conf.verbose_name_plural).replace('-', '')
     config_class._meta = type("Meta", (_ConfigMeta,), {
         'app_label': conf.app_label,
         'verbose_name_plural': conf.verbose_name_plural,
         'object_name': 'Config',
-        'model_name': conf.slug or 'djconfig_{}'.format(slug_name),
-        'module_name': conf.slug or 'djconfig_{}'.format(slug_name)})
+        'model_name': conf.name,
+        'module_name': conf.name})
     admin.site.register([config_class], conf_admin, **options)
