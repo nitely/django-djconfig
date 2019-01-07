@@ -149,7 +149,7 @@ contains all settings:
     class AppConfig(djconfig.admin.Config):
         app_label = 'djconfig'
         verbose_name_plural = 'app config'
-        slug = 'appconfig'
+        name = 'appconfig'
 
     djconfig.admin.register(AppConfig, AppConfigAdmin)
 
@@ -170,7 +170,7 @@ The following example shows how to register a form in multiple apps:
     class MyAppConfig(djconfig.admin.Config):
         app_label = 'myapp'
         verbose_name_plural = 'myapp config'
-        slug = 'myappconfig'
+        name = 'myappconfig'
 
     djconfig.admin.register(MyAppConfig, MyAppConfigAdmin)
 
@@ -188,7 +188,7 @@ The following example shows how to register a form in multiple apps:
     class MyOtherAppConfig(djconfig.admin.Config):
         app_label = 'myotherapp'
         verbose_name_plural = 'myotherapp config'
-        slug = 'myotherappconfig'
+        name = 'myotherappconfig'
 
     djconfig.admin.register(MyOtherAppConfig, MyOtherAppConfigForm)
 

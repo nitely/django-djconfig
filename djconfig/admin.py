@@ -12,7 +12,7 @@ Usage::
     class FooConfig(djconfig.admin.Config):
         app_label = 'djconfig'
         verbose_name_plural = 'foo config'
-        slug = 'fooconfig'
+        name = 'fooconfig'
 
     djconfig.admin.register(FooConfig, FooConfigAdmin)
 """
