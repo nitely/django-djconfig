@@ -1,3 +1,11 @@
+0.10.0
+==================
+
+* Remove Python 3.4 support
+* Remove Django 2.0 support
+* Add Django 2.2 support
+* Remove Django dependency pinning
+
 0.9.0
 ==================
 

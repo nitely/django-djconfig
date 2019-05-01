@@ -15,10 +15,10 @@ Set the config values using a regular form.
 Those values are persisted in the database (one per row)
 and stored in an in-memory cache for later access.
 
-## Requirements
+## Compatibility
 
-* Python 2.7, 3.4, 3.5, 3.6 or 3.7
-* Django 1.11 LTS, 2.0 or 2.1
+* Python 2.7, 3.5, 3.6 and 3.7
+* Django 1.11 LTS, 2.1 and 2.2 LTS
 
 ## Documentation
 
