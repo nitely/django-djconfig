@@ -17,8 +17,8 @@ and stored in an in-memory cache for later access.
 
 ## Compatibility
 
-* Python 2.7, 3.5, 3.6 and 3.7
-* Django 1.11 LTS, 2.1 and 2.2 LTS
+* Python +3.8
+* Django 3.2 LTS, 4.2 LTS
 
 ## Documentation
 

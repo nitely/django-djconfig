@@ -47,7 +47,7 @@ def _check_backend():
 def _deserialize(value, field):
     assert isinstance(field, forms.Field)
     if isinstance(field, forms.ModelMultipleChoiceField):
-        return json.loads(value, encoding='utf8')
+        return json.loads(value)
     return value
 
 def _unlazify(value):

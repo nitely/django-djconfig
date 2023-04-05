@@ -7,6 +7,7 @@ import djconfig
 
 class Tests(AppConfig):
 
+    default_auto_field = 'django.db.models.AutoField'
     name = 'tests'
     verbose_name = "Tests"
     label = 'tests'
