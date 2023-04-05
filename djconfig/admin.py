@@ -26,7 +26,7 @@ from django.template.response import TemplateResponse
 from django.contrib.admin.options import csrf_protect_m
 from django.contrib.admin import helpers
 from django.core.exceptions import PermissionDenied
-from django.conf.urls import url
+from django.urls import re_path
 
 from .forms import ConfigForm
 
@@ -50,10 +50,10 @@ class ConfigAdmin(admin.ModelAdmin):
     def get_urls(self):
         info = self.model._meta.app_label, self.model._meta.module_name
         return [
-            url(r'^$',
+            re_path(r'^$',
                 self.admin_site.admin_view(self.changelist_view),
                 name='%s_%s_changelist' % info),
-            url(r'^$',
+            re_path(r'^$',
                 self.admin_site.admin_view(self.changelist_view),
                 name='%s_%s_add' % info),
         ]

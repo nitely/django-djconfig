@@ -1,3 +1,9 @@
+0.11.0
+==================
+
+* Support only Python +3.8
+* Support only Django 3.2, and 4.2
+
 0.10.0
 ==================
 

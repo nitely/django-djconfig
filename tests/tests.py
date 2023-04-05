@@ -515,7 +515,7 @@ class DjConfigMiddlewareTest(TestCase):
         config._set('char', None)
 
         # Should not reload since _updated_at does not exists (form was not saved)
-        middleware = DjConfigMiddleware()
+        middleware = DjConfigMiddleware(get_response=lambda req: None)
         middleware.process_request(request=None)
         self.assertIsNone(config._cache.get('char'))
 
