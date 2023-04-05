@@ -1,6 +1,6 @@
 # DjConfig
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/nitely/django-djconfig/ci.yml?branch=main&style=flat-square)](https://github.com/nitely/django-djconfig/actions?query=workflow%3ACI)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/nitely/django-djconfig/ci.yml?branch=master&style=flat-square)](https://github.com/nitely/django-djconfig/actions?query=workflow%3ACI)
 [![Coverage Status](https://img.shields.io/coveralls/nitely/django-djconfig.svg?style=flat-square)](https://coveralls.io/r/nitely/django-djconfig)
 [![pypi](https://img.shields.io/pypi/v/django-djconfig.svg?style=flat-square)](https://pypi.python.org/pypi/django-djconfig)
 [![licence](https://img.shields.io/pypi/l/django-djconfig.svg?style=flat-square)](https://raw.githubusercontent.com/nitely/django-djconfig/master/LICENSE)
